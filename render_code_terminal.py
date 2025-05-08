@@ -99,6 +99,7 @@ def render_terminal_image(
 
     # Paste onto shadow base
     base.paste(img, (0, 0), img)
+    base = base.filter(ImageFilter.GaussianBlur(0.5))
     base.convert("RGB").save(output, "PNG")
 
 
