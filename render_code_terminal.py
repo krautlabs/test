@@ -57,31 +57,47 @@ def render_terminal_image(
     img_width = int(max_line_width + 2 * padding)
     img_height = int(len(lines) * line_height + 2 * padding + 30)
 
-    base = Image.new("RGBA", (img_width + 20, img_height + 20), (255, 255, 255, 0))
-    shadow = Image.new("RGBA", (img_width, img_height), (0, 0, 0, 180))
-    # shadow = shadow.filter(ImageFilter.GaussianBlur(5))
-    base.paste(shadow, (10, 10), shadow)
-    base = base.filter(ImageFilter.GaussianBlur(5))
+    corner_radius = 16
 
-    img = Image.new("RGBA", (img_width, img_height), (40, 42, 54))
-    draw = ImageDraw.Draw(img)
+    # Create shadow background with transparency
+    base = Image.new("RGBA", (img_width + 20, img_height + 20), (0, 0, 0, 0))
+    shadow = Image.new("RGBA", (img_width, img_height), (0, 0, 0, 180))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(6))
+    base.paste(shadow, (10, 10), shadow)
+
+    # Create rounded terminal window
+    img = Image.new("RGBA", (img_width, img_height), (0, 0, 0, 0))
+    mask = Image.new("L", (img_width, img_height), 0)
+    mask_draw = ImageDraw.Draw(mask)
+    mask_draw.rounded_rectangle(
+        [0, 0, img_width, img_height], radius=corner_radius, fill=255
+    )
+
+    terminal = Image.new("RGBA", (img_width, img_height), (40, 42, 54))
+    terminal_draw = ImageDraw.Draw(terminal)
 
     # Draw top bar with traffic lights
     bar_height = 30
-    draw.rectangle([(0, 0), (img_width, bar_height)], fill=(30, 30, 30))
+    terminal_draw.rectangle([(0, 0), (img_width, bar_height)], fill=(30, 30, 30))
     traffic_colors = [(255, 95, 86), (255, 189, 46), (39, 201, 63)]
     for i, color in enumerate(traffic_colors):
-        draw.ellipse([(padding + i * 20, 8), (padding + i * 20 + 12, 20)], fill=color)
+        terminal_draw.ellipse(
+            [(padding + i * 20, 8), (padding + i * 20 + 12, 20)], fill=color
+        )
 
-    # Draw code lines
+    # Draw code
     y = padding + bar_height
     for line in lines:
         x = padding
         for token, color in line:
-            draw.text((x, y), token, font=font, fill=color)
+            terminal_draw.text((x, y), token, font=font, fill=color)
             x += font.getlength(token)
         y += line_height
 
+    # Apply rounded corners mask
+    img.paste(terminal, (0, 0), mask)
+
+    # Paste onto shadow base
     base.paste(img, (0, 0), img)
     base.convert("RGB").save(output, "PNG")
 
