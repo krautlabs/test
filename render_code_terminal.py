@@ -60,7 +60,7 @@ def render_terminal_image(
     corner_radius = 16
 
     # Create shadow background with transparency
-    base = Image.new("RGBA", (img_width + 20, img_height + 20), (0, 0, 0, 0))
+    base = Image.new("RGBA", (img_width + 20, img_height + 20), (255, 255, 255, 0))
     shadow = Image.new("RGBA", (img_width, img_height), (0, 0, 0, 180))
     base.paste(shadow, (10, 10), shadow)
     base = base.filter(ImageFilter.GaussianBlur(6))
