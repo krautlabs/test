@@ -62,8 +62,8 @@ def render_terminal_image(
     # Create shadow background with transparency
     base = Image.new("RGBA", (img_width + 20, img_height + 20), (0, 0, 0, 0))
     shadow = Image.new("RGBA", (img_width, img_height), (0, 0, 0, 180))
-    shadow = shadow.filter(ImageFilter.GaussianBlur(6))
     base.paste(shadow, (10, 10), shadow)
+    base = base.filter(ImageFilter.GaussianBlur(6))
 
     # Create rounded terminal window
     img = Image.new("RGBA", (img_width, img_height), (0, 0, 0, 0))
