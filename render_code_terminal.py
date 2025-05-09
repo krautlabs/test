@@ -107,91 +107,108 @@ def get_wrapped_lines(code_tokens, columns, rows):
     return wrapped_lines
 
 
-def render_terminal_image(
-    wrapped_lines,
-    font_path,
-    font_size=20,
-    padding=20,
-    margin=20,
-    line_spacing=1.4,
-    theme="monokai",
-    output="rendered_terminal.png",
-    rows=24,
-    columns=80,
-    corner_radius=16,
-):
-    font = ImageFont.truetype(font_path, font_size)
-    line_height = int(font_size * line_spacing)
-    char_width = font.getlength("M")
+class Renderer:
+    def __init__(
+        self,
+        wrapped_lines,
+        font_path,
+        font_size=20,
+        padding=20,
+        margin=20,
+        line_spacing=1.4,
+        output="rendered_terminal.png",
+        rows=24,
+        columns=80,
+        corner_radius=16,
+    ):
+        self.wrapped_lines = wrapped_lines
+        self.font_path = font_path
+        self.font_size = font_size
+        self.padding = padding
+        self.margin = margin
+        self.line_spacing = line_spacing
+        self.output = output
+        self.rows = rows
+        self.columns = columns
+        self.corner_radius = corner_radius
 
-    window_width = int(columns * char_width + 2 * padding)
-    window_height = int(rows * line_height + 2 * padding + 30)
-    img_width = int(window_width + 2 * margin)
-    img_height = int(window_height + 2 * margin)
+    def render_terminal_image(self):
+        font = ImageFont.truetype(self.font_path, self.font_size)
+        line_height = int(self.font_size * self.line_spacing)
+        char_width = font.getlength("M")
 
-    # Create shadow background with transparency
-    shadow_offset = 10
-    shadow_blur = 6
-    assert shadow_offset <= margin, f"{shadow_offset=}, {margin=}."
+        margin = self.margin
+        padding = self.padding
 
-    base = Image.new(
-        "RGBA",
-        (img_width, img_height),
-        (255, 255, 255, 0),
-    )
-    base = create_purple_gradient(img_width, img_height)
+        window_width = int(self.columns * char_width + 2 * padding)
+        window_height = int(self.rows * line_height + 2 * padding + 30)
+        img_width = int(window_width + 2 * margin)
+        img_height = int(window_height + 2 * margin)
 
-    shadow = Image.new("RGBA", (img_width, img_height), (255, 255, 255, 0))
-    shadow_draw = ImageDraw.Draw(shadow)
-    shadow_draw.rounded_rectangle(
-        [
-            margin + shadow_offset,
-            margin + shadow_offset,
-            window_width + shadow_offset,
-            window_height + shadow_offset,
-        ],
-        radius=corner_radius,
-        fill=(0, 0, 0, 180),
-    )
-    base.paste(shadow, (margin, margin), shadow)
-    base = base.filter(ImageFilter.GaussianBlur(shadow_blur))
+        # Create shadow background with transparency
+        shadow_offset = 10
+        shadow_blur = 6
+        assert shadow_offset <= margin, f"{shadow_offset=}, {margin=}."
 
-    # Create rounded terminal window
-    img = Image.new("RGBA", (window_width, window_height), (0, 0, 0, 0))
-    mask = Image.new("L", (window_width, window_height), 0)
-    mask_draw = ImageDraw.Draw(mask)
-    mask_draw.rounded_rectangle(
-        [0, 0, window_width, window_height], radius=corner_radius, fill=255
-    )
+        base = Image.new(
+            "RGBA",
+            (img_width, img_height),
+            (255, 255, 255, 0),
+        )
+        base = create_purple_gradient(img_width, img_height)
 
-    terminal = Image.new("RGBA", (window_width, window_height), (40, 42, 54))
-    terminal_draw = ImageDraw.Draw(terminal)
+        shadow = Image.new("RGBA", (img_width, img_height), (255, 255, 255, 0))
+        shadow_draw = ImageDraw.Draw(shadow)
+        shadow_draw.rounded_rectangle(
+            [
+                margin + shadow_offset,
+                margin + shadow_offset,
+                window_width + shadow_offset,
+                window_height + shadow_offset,
+            ],
+            radius=self.corner_radius,
+            fill=(0, 0, 0, 180),
+        )
+        base.paste(shadow, (margin, margin), shadow)
+        base = base.filter(ImageFilter.GaussianBlur(shadow_blur))
 
-    # Draw top bar with traffic lights
-    bar_height = 30
-    terminal_draw.rectangle([(0, 0), (window_width, bar_height)], fill=(30, 30, 30))
-    traffic_colors = [(255, 95, 86), (255, 189, 46), (39, 201, 63)]
-    for i, color in enumerate(traffic_colors):
-        terminal_draw.ellipse(
-            [(padding + i * 20, 8), (padding + i * 20 + 12, 20)], fill=color
+        # Create rounded terminal window
+        img = Image.new("RGBA", (window_width, window_height), (0, 0, 0, 0))
+        mask = Image.new("L", (window_width, window_height), 0)
+        mask_draw = ImageDraw.Draw(mask)
+        mask_draw.rounded_rectangle(
+            [0, 0, window_width, window_height], radius=self.corner_radius, fill=255
         )
 
-    # Draw code
-    y = padding + bar_height
-    for line in wrapped_lines:
-        x = padding
-        for token, color in line:
-            terminal_draw.text((x, y), token, font=font, fill=color)
-            x += font.getlength(token)
-        y += line_height
+        terminal = Image.new("RGBA", (window_width, window_height), (40, 42, 54))
+        terminal_draw = ImageDraw.Draw(terminal)
 
-    # Apply rounded corners mask
-    img.paste(terminal, (0, 0), mask)
+        # Draw top bar with traffic lights
+        bar_height = 30
+        terminal_draw.rectangle([(0, 0), (window_width, bar_height)], fill=(30, 30, 30))
+        traffic_colors = [(255, 95, 86), (255, 189, 46), (39, 201, 63)]
+        for i, color in enumerate(traffic_colors):
+            terminal_draw.ellipse(
+                [(padding + i * 20, 8), (padding + i * 20 + 12, 20)], fill=color
+            )
 
-    # Paste onto shadow base
-    base.paste(img, (margin, margin), img)
-    base = base.filter(ImageFilter.GaussianBlur(0.5))
-    base.convert("RGB").save(output, "PNG")
+        # Draw code
+        # TODO: create image/draw context separate from the terminal window
+        y = padding + bar_height
+        for line in self.wrapped_lines:
+            x = padding
+            for token, color in line:
+                terminal_draw.text((x, y), token, font=font, fill=color)
+                x += font.getlength(token)
+            y += line_height
+
+        # Apply rounded corners mask
+        img.paste(terminal, (0, 0), mask)
+
+        # Paste onto shadow base
+        base.paste(img, (margin, margin), img)
+        base = base.filter(ImageFilter.GaussianBlur(0.5))
+        base.convert("RGB").save(self.output, "PNG")
 
 
 def main():
@@ -240,15 +257,16 @@ def main():
         args.rows,
     )
 
-    render_terminal_image(
+    renderer = Renderer(
         wrapped_lines,
         args.font,
-        theme=args.theme,
         output=args.output,
         rows=args.rows,
         columns=args.columns,
         corner_radius=16,
+        font_size=20,
     )
+    renderer.render_terminal_image()
 
 
 def create_purple_gradient(width, height, start_color=None, end_color=None):
