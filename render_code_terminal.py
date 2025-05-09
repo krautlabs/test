@@ -110,7 +110,9 @@ def get_wrapped_lines(code_tokens, columns, rows):
 class Renderer:
     def __init__(
         self,
+        code,
         font_path,
+        style="monokai",
         font_size=20,
         padding=20,
         margin=20,
@@ -118,7 +120,10 @@ class Renderer:
         rows=24,
         columns=80,
         corner_radius=16,
+        post_blur=0.5,
     ):
+        self.code = code
+        self.style = style
         self.font_path = font_path
         self.font_size = font_size
         self.padding = padding
@@ -127,15 +132,16 @@ class Renderer:
         self.rows = rows
         self.columns = columns
         self.corner_radius = corner_radius
+        self.post_blur = 0.5
 
-        self.titlebar_layer = None
         self.font = None
         self.line_height = None
-        self.mask = None
-        self.img = None
-        self.bg_layer = None
         self.bar_height = 30
+
+        self.bg_layer = None
         self.shadow_layer = None
+        self.text_layer = None
+        self.titlebar_layer = None
         self.final_image = None
 
         self.shadow_offset = 10
@@ -201,17 +207,7 @@ class Renderer:
         )
         self.shadow_layer = shadow.filter(ImageFilter.GaussianBlur(shadow_blur))
 
-    def create_window_mask(self):
-        # create mask to round edges of terminal window
-        self.mask2 = Image.new("L", (self.window_width, self.window_height), 0)
-        mask_draw = ImageDraw.Draw(self.mask2)
-        mask_draw.rounded_rectangle(
-            [0, 0, self.window_width, self.window_height],
-            radius=self.corner_radius,
-            fill=255,
-        )
-
-    def render_titlebar_layer(self):
+    def render_titlebar_layer(self, color=(30, 30, 30)):
         """Render a stylized terminal window title bar resembling macOS."""
         # assert (
         #     self.shadow_offset <= self.margin
@@ -224,7 +220,7 @@ class Renderer:
         terminal_draw.rounded_rectangle(
             [0, 0, self.window_width, self.window_height],
             radius=self.corner_radius,
-            fill=(30, 30, 30),
+            fill=color,
         )
         traffic_colors = [(255, 95, 86), (255, 189, 46), (39, 201, 63)]
         for i, color in enumerate(traffic_colors):
@@ -238,7 +234,7 @@ class Renderer:
         self.titlebar_layer.paste(terminal, (self.margin, self.margin))
 
     def render_text_layer(self, code, style="monokai"):
-        # assert self.titlebar_layer, "create window image before rendering text"
+        """Render text area according to style on top of solid background."""
 
         formatter = TokenFormatter(style=style)
         highlight(code, PythonLexer(), formatter)
@@ -288,7 +284,26 @@ class Renderer:
         self.final_image.alpha_composite(self.titlebar_layer)
         self.final_image = self.final_image.filter(ImageFilter.GaussianBlur(blur))
 
+    def render(self):
+        if self.bg_layer is None:
+            self.render_background_layer()
+        if self.shadow_layer is None:
+            self.render_shadow_layer(
+                shadow_offset=self.shadow_offset,
+                shadow_blur=self.shadow_blur,
+                shadow_color=self.shadow_color,
+                shadow_alpha=self.shadow_alpha,
+                corner_radius=self.corner_radius,
+            )
+        if self.titlebar_layer is None:
+            self.render_titlebar_layer()
+        if self.text_layer is None:
+            self.render_text_layer(self.code, style=self.style)
+        self.composit_layers(blur=self.post_blur)
+
     def save_image(self, filename="rendered_code.png"):
+        if self.final_image is None:
+            raise ValueError("You have to run .render() to create an image first.")
         self.final_image.convert("RGBA").save(filename, "PNG")
         print(f'Image saved to "{filename}".')
 
@@ -331,18 +346,19 @@ def main():
         code = f.read()
 
     renderer = Renderer(
+        code=code,
         font_path=args.font,
+        style=args.theme,
         rows=args.rows,
         columns=args.columns,
         corner_radius=16,
         font_size=20,
     )
-    renderer.render_background_layer("green")
-    renderer.render_shadow_layer()
-    renderer.render_titlebar_layer()
-    renderer.render_text_layer(code, style=args.theme)
 
-    renderer.composit_layers(blur=0.5)
+    # individual layers can be manually rendered
+    # renderer.render_background_layer(first_color=(0, 0, 0, 0))
+
+    renderer.render()
     renderer.save_image(args.output)
 
 
@@ -351,7 +367,7 @@ def main():
 
 def create_uniform_background(width, height, color="white"):
     color = any_color_to_rgba(color)
-    return Image.new("RGBA", (width, height), (color))
+    return Image.new("RGBA", (width, height), color)
 
 
 def create_gradient_background(width, height, start_color="coral", end_color="salmon"):
@@ -401,7 +417,7 @@ def any_color_to_rgba(color):
 
     if isinstance(color, (tuple, list)):
         if len(color) == 3:
-            color = tuple(color) + (0,)
+            color = tuple(color) + (255,)
         if len(color) == 4:
             if all(isinstance(c, int) and 0 <= c <= 255 for c in color):
                 return color
