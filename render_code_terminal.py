@@ -139,6 +139,8 @@ def render_terminal_image(
         (img_width, img_height),
         (255, 255, 255, 0),
     )
+    base = create_purple_gradient(img_width, img_height)
+
     shadow = Image.new("RGBA", (img_width, img_height), (255, 255, 255, 0))
     shadow_draw = ImageDraw.Draw(shadow)
     shadow_draw.rounded_rectangle(
@@ -247,6 +249,40 @@ def main():
         columns=args.columns,
         corner_radius=16,
     )
+
+
+def create_purple_gradient(width, height, start_color=None, end_color=None):
+    import math
+
+    # Monokai-style purple gradient (dark to light purple)
+    start_color = (93, 80, 124)
+    end_color = (151, 125, 201)
+
+    image = Image.new("RGB", (width, height))
+    angle_rad = math.radians(-120)
+
+    # Gradient vector components
+    dx = math.cos(angle_rad)
+    dy = math.sin(angle_rad)
+
+    for y in range(height):
+        for x in range(width):
+            # Project point (x, y) onto gradient direction vector
+            projection = x * dx + y * dy
+            # Normalize projection to range 0–1
+            normalized = (projection - min(0, dx * width + dy * height)) / (
+                abs(dx) * width + abs(dy) * height
+            )
+            normalized = max(0, min(1, normalized))  # Clamp to [0, 1]
+
+            # Interpolate colors
+            r = int(start_color[0] * (1 - normalized) + end_color[0] * normalized)
+            g = int(start_color[1] * (1 - normalized) + end_color[1] * normalized)
+            b = int(start_color[2] * (1 - normalized) + end_color[2] * normalized)
+
+            image.putpixel((x, y), (r, g, b))
+
+    return image
 
 
 if __name__ == "__main__":
