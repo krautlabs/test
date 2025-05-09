@@ -116,7 +116,6 @@ class Renderer:
         padding=20,
         margin=20,
         line_spacing=1.4,
-        output="rendered_terminal.png",
         rows=24,
         columns=80,
         corner_radius=16,
@@ -127,7 +126,6 @@ class Renderer:
         self.padding = padding
         self.margin = margin
         self.line_spacing = line_spacing
-        self.output = output
         self.rows = rows
         self.columns = columns
         self.corner_radius = corner_radius
@@ -138,15 +136,15 @@ class Renderer:
         self.img = None
         self.base = None
         self.bar_height = 30
-        self._set_font_properties()
-        self._set_image_properties()
+        self._init_font_properties()
+        self._init_image_properties()
 
-    def _set_font_properties(self):
+    def _init_font_properties(self):
         self.font = ImageFont.truetype(self.font_path, self.font_size)
         self.line_height = int(self.font_size * self.line_spacing)
         self.char_width = self.font.getlength("M")
 
-    def _set_image_properties(self):
+    def _init_image_properties(self):
         self.window_width = int(self.columns * self.char_width + 2 * self.padding)
         self.window_height = int(self.rows * self.line_height + 2 * self.padding + 30)
         self.img_width = int(self.window_width + 2 * self.margin)
@@ -207,7 +205,8 @@ class Renderer:
         traffic_colors = [(255, 95, 86), (255, 189, 46), (39, 201, 63)]
         for i, color in enumerate(traffic_colors):
             terminal_draw.ellipse(
-                [(self.padding + i * 20, 8), (self.padding + i * 20 + 12, 20)], fill=color
+                [(self.padding + i * 20, 8), (self.padding + i * 20 + 12, 20)],
+                fill=color,
             )
 
         self.window_image = terminal
@@ -230,7 +229,9 @@ class Renderer:
         # Paste onto shadow base
         self.base.paste(self.img, (self.margin, self.margin), self.img)
         self.base = self.base.filter(ImageFilter.GaussianBlur(0.5))
-        self.base.convert("RGB").save(self.output, "PNG")
+
+    def save_image(self, filename):
+        self.base.convert("RGB").save(filename, "PNG")
 
 
 def main():
@@ -282,7 +283,6 @@ def main():
     renderer = Renderer(
         wrapped_lines,
         args.font,
-        output=args.output,
         rows=args.rows,
         columns=args.columns,
         corner_radius=16,
@@ -290,6 +290,7 @@ def main():
     )
     renderer.render_terminal_window()
     renderer.render_text_to_window()
+    renderer.save_image(args.output)
 
 
 def create_purple_gradient(width, height, start_color=None, end_color=None):
