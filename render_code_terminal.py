@@ -150,19 +150,28 @@ class Renderer:
         self.img_width = int(self.window_width + 2 * self.margin)
         self.img_height = int(self.window_height + 2 * self.margin)
 
-    def render_terminal_window(self):
-        # Create shadow background with transparency
-        shadow_offset = 10
-        shadow_blur = 6
+    def render_terminal_window(self, shadow_offset=10, shadow_blur=6):
+        """Render a stylized terminal window background resembling macOS.
+
+        This method creates an image of a terminal window with a drop shadow which
+        can be customized by adjusting its offset and blur. The image is cached and
+        can be re-used as background for different code snippets.
+
+        Parameters:
+            shadow_offset (int): The distance in pixels that the shadow is offset
+                from the terminal window. Defaults to 10.
+            shadow_blur (int): The level of blur applied to the shadow. Higher
+                values result in a softer shadow. Defaults to 6.
+        """
         assert shadow_offset <= self.margin, f"{shadow_offset=}, {self.margin=}."
 
+        # create background
         self.base = Image.new(
-            "RGBA",
-            (self.img_width, self.img_height),
-            (255, 255, 255, 0),
+            "RGBA", (self.img_width, self.img_height), (255, 255, 255, 0)
         )
         self.base = create_purple_gradient(self.img_width, self.img_height)
 
+        # create shadow
         shadow = Image.new(
             "RGBA", (self.img_width, self.img_height), (255, 255, 255, 0)
         )
@@ -211,7 +220,7 @@ class Renderer:
 
         self.window_image = terminal
 
-    def render_text_to_window(self, code, style):
+    def render_text_to_window(self, code, style="monokai"):
         assert self.window_image, "create window image before rendering text"
 
         formatter = TokenFormatter(style=style)
@@ -239,8 +248,9 @@ class Renderer:
         self.base.paste(self.img, (self.margin, self.margin), self.img)
         self.base = self.base.filter(ImageFilter.GaussianBlur(0.5))
 
-    def save_image(self, filename):
+    def save_image(self, filename="rendered_code.png"):
         self.base.convert("RGB").save(filename, "PNG")
+        print(f'Image saved to "{filename}".')
 
 
 def main():
@@ -287,7 +297,7 @@ def main():
         corner_radius=16,
         font_size=20,
     )
-    renderer.render_terminal_window()
+    renderer.render_terminal_window(shadow_offset=10, shadow_blur=0)
     renderer.render_text_to_window(code, style=args.theme)
     renderer.save_image(args.output)
 
