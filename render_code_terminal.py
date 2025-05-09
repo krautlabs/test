@@ -110,7 +110,6 @@ def get_wrapped_lines(code_tokens, columns, rows):
 class Renderer:
     def __init__(
         self,
-        wrapped_lines,
         font_path,
         font_size=20,
         padding=20,
@@ -120,7 +119,6 @@ class Renderer:
         columns=80,
         corner_radius=16,
     ):
-        self.wrapped_lines = wrapped_lines
         self.font_path = font_path
         self.font_size = font_size
         self.padding = padding
@@ -129,6 +127,7 @@ class Renderer:
         self.rows = rows
         self.columns = columns
         self.corner_radius = corner_radius
+
         self.window_image = None
         self.font = None
         self.line_height = None
@@ -136,6 +135,7 @@ class Renderer:
         self.img = None
         self.base = None
         self.bar_height = 30
+
         self._init_font_properties()
         self._init_image_properties()
 
@@ -211,12 +211,21 @@ class Renderer:
 
         self.window_image = terminal
 
-    def render_text_to_window(self):
+    def render_text_to_window(self, code, style):
         assert self.window_image, "create window image before rendering text"
+
+        formatter = TokenFormatter(style=style)
+        highlight(code, PythonLexer(), formatter)
+
+        wrapped_lines = get_wrapped_lines(
+            formatter.result,
+            self.columns,
+            self.rows,
+        )
 
         terminal_draw = ImageDraw.Draw(self.window_image)
         y = self.padding + self.bar_height
-        for line in self.wrapped_lines:
+        for line in wrapped_lines:
             x = self.padding
             for token, color in line:
                 terminal_draw.text((x, y), token, font=self.font, fill=color)
@@ -271,25 +280,15 @@ def main():
     with open(args.source_file, "r", encoding="utf-8") as f:
         code = f.read()
 
-    formatter = TokenFormatter(style=args.theme)
-    highlight(code, PythonLexer(), formatter)
-
-    wrapped_lines = get_wrapped_lines(
-        formatter.result,
-        args.columns,
-        args.rows,
-    )
-
     renderer = Renderer(
-        wrapped_lines,
-        args.font,
+        font_path=args.font,
         rows=args.rows,
         columns=args.columns,
         corner_radius=16,
         font_size=20,
     )
     renderer.render_terminal_window()
-    renderer.render_text_to_window()
+    renderer.render_text_to_window(code, style=args.theme)
     renderer.save_image(args.output)
 
 
