@@ -1,5 +1,6 @@
 import argparse
 import os
+import textwrap
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -36,26 +37,92 @@ def render_terminal_image(
     line_spacing=1.4,
     theme="monokai",
     output="rendered_terminal.png",
+    rows=24,
+    columns=80,
 ):
     font = ImageFont.truetype(font_path, font_size)
     line_height = int(font_size * line_spacing)
-    lines = []
+
+    # Calculate the character width based on font
+    char_width = font.getlength("M")
+
+    # Process tokens into lines (now with wrapping based on column limit)
+    raw_lines = []
     current_line = []
+    current_line_text = ""
+
     for token, color in code_tokens:
         parts = token.split("\n")
         for i, part in enumerate(parts):
             if i > 0:
-                lines.append(current_line)
+                raw_lines.append((current_line, current_line_text))
                 current_line = []
+                current_line_text = ""
             current_line.append((part, color))
-    if current_line:
-        lines.append(current_line)
+            current_line_text += part
 
-    max_line_width = max(
-        sum(font.getlength(token) for token, _ in line) for line in lines
-    )
-    img_width = int(max_line_width + 2 * padding)
-    img_height = int(len(lines) * line_height + 2 * padding + 30)
+    if current_line:
+        raw_lines.append((current_line, current_line_text))
+
+    # Apply column wrapping
+    wrapped_lines = []
+    for tokens, full_text in raw_lines:
+        if len(full_text) <= columns:
+            wrapped_lines.append(tokens)
+        else:
+            # Wrap this line into multiple lines
+            wrapped_text_lines = textwrap.wrap(
+                full_text, width=columns, replace_whitespace=False
+            )
+
+            # Need to split the tokens according to the wrapping
+            for wrapped_line in wrapped_text_lines:
+                new_tokens = []
+                remaining_text = wrapped_line
+
+                for token, color in tokens:
+                    if not remaining_text:
+                        break
+
+                    if token in remaining_text:
+                        # Find position where token occurs in remaining text
+                        pos = remaining_text.find(token)
+                        if pos == 0:
+                            # Token is at the beginning of the remaining text
+                            use_len = min(len(token), len(remaining_text))
+                            new_tokens.append((token[:use_len], color))
+                            remaining_text = remaining_text[use_len:]
+                        else:
+                            # Skip characters before the token
+                            remaining_text = remaining_text[pos:]
+                            use_len = min(len(token), len(remaining_text))
+                            new_tokens.append((token[:use_len], color))
+                            remaining_text = remaining_text[use_len:]
+                    else:
+                        # Token might be partially in this line
+                        common_prefix_len = 0
+                        for i in range(min(len(token), len(remaining_text))):
+                            if token[i] != remaining_text[i]:
+                                break
+                            common_prefix_len = i + 1
+
+                        if common_prefix_len > 0:
+                            new_tokens.append((token[:common_prefix_len], color))
+                            remaining_text = remaining_text[common_prefix_len:]
+
+                wrapped_lines.append(new_tokens)
+
+    # Limit to specified number of rows (keep last 'rows' if overflow)
+    if len(wrapped_lines) > rows:
+        wrapped_lines = wrapped_lines[-rows:]
+
+    # Ensure we have exactly 'rows' number of lines
+    while len(wrapped_lines) < rows:
+        wrapped_lines.append([])  # Add empty lines to fill the terminal
+
+    # Calculate dimensions based on fixed rows and columns
+    img_width = int(columns * char_width + 2 * padding)
+    img_height = int(rows * line_height + 2 * padding + 30)
 
     corner_radius = 16
 
@@ -87,7 +154,7 @@ def render_terminal_image(
 
     # Draw code
     y = padding + bar_height
-    for line in lines:
+    for line in wrapped_lines:
         x = padding
         for token, color in line:
             terminal_draw.text((x, y), token, font=font, fill=color)
@@ -123,6 +190,12 @@ def main():
         default="rendered_terminal.png",
         help="Output PNG file path",
     )
+    parser.add_argument(
+        "--rows", type=int, default=24, help="Number of rows in the terminal"
+    )
+    parser.add_argument(
+        "--columns", type=int, default=80, help="Number of columns in the terminal"
+    )
     args = parser.parse_args()
 
     if not Path(args.source_file).exists() or not args.source_file.endswith(".py"):
@@ -137,7 +210,12 @@ def main():
     formatter = TokenFormatter(style=args.theme)
     highlight(code, PythonLexer(), formatter)
     render_terminal_image(
-        formatter.result, args.font, theme=args.theme, output=args.output
+        formatter.result,
+        args.font,
+        theme=args.theme,
+        output=args.output,
+        rows=args.rows,
+        columns=args.columns,
     )
 
 
