@@ -29,7 +29,7 @@ class TokenFormatter(Formatter):
             self.result.append((value, color))
 
 
-def get_wrapped_lines(code_tokens):
+def get_wrapped_lines(code_tokens, columns, rows):
     # Process tokens into lines (now with wrapping based on column limit)
     raw_lines = []
     current_line = []
@@ -104,6 +104,8 @@ def get_wrapped_lines(code_tokens):
     while len(wrapped_lines) < rows:
         wrapped_lines.append([])  # Add empty lines to fill the terminal
 
+    return wrapped_lines
+
 
 def render_terminal_image(
     code_tokens,
@@ -122,7 +124,7 @@ def render_terminal_image(
     # Calculate the character width based on font
     char_width = font.getlength("M")
 
-    wrapped_lines = get_wrapped_lines(code_tokens)
+    wrapped_lines = get_wrapped_lines(code_tokens, columns, rows)
 
     # Calculate dimensions based on fixed rows and columns
     img_width = int(columns * char_width + 2 * padding)
