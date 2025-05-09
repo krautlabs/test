@@ -108,7 +108,7 @@ def get_wrapped_lines(code_tokens, columns, rows):
 
 
 def render_terminal_image(
-    code_tokens,
+    wrapped_lines,
     font_path,
     font_size=20,
     padding=20,
@@ -117,24 +117,24 @@ def render_terminal_image(
     output="rendered_terminal.png",
     rows=24,
     columns=80,
+    corner_radius=16,
 ):
     font = ImageFont.truetype(font_path, font_size)
     line_height = int(font_size * line_spacing)
-
-    # Calculate the character width based on font
     char_width = font.getlength("M")
-
-    wrapped_lines = get_wrapped_lines(code_tokens, columns, rows)
-
-    # Calculate dimensions based on fixed rows and columns
     img_width = int(columns * char_width + 2 * padding)
     img_height = int(rows * line_height + 2 * padding + 30)
 
-    corner_radius = 16
-
     # Create shadow background with transparency
     base = Image.new("RGBA", (img_width + 20, img_height + 20), (255, 255, 255, 0))
-    shadow = Image.new("RGBA", (img_width, img_height), (0, 0, 0, 180))
+    # shadow = Image.new("RGBA", (img_width, img_height), (0, 0, 0, 180))
+
+    shadow = Image.new("RGBA", (img_width, img_height), (255, 255, 255, 0))
+    shadow_draw = ImageDraw.Draw(shadow)
+    shadow_draw.rounded_rectangle(
+        [0, 0, img_width, img_height], radius=corner_radius, fill=(0, 0, 0, 180)
+    )
+
     base.paste(shadow, (10, 10), shadow)
     base = base.filter(ImageFilter.GaussianBlur(6))
 
@@ -215,13 +215,21 @@ def main():
 
     formatter = TokenFormatter(style=args.theme)
     highlight(code, PythonLexer(), formatter)
-    render_terminal_image(
+
+    wrapped_lines = get_wrapped_lines(
         formatter.result,
+        args.columns,
+        args.rows,
+    )
+
+    render_terminal_image(
+        wrapped_lines,
         args.font,
         theme=args.theme,
         output=args.output,
         rows=args.rows,
         columns=args.columns,
+        corner_radius=16,
     )
 
 
