@@ -112,6 +112,7 @@ def render_terminal_image(
     font_path,
     font_size=20,
     padding=20,
+    margin=20,
     line_spacing=1.4,
     theme="monokai",
     output="rendered_terminal.png",
@@ -122,39 +123,51 @@ def render_terminal_image(
     font = ImageFont.truetype(font_path, font_size)
     line_height = int(font_size * line_spacing)
     char_width = font.getlength("M")
-    img_width = int(columns * char_width + 2 * padding)
-    img_height = int(rows * line_height + 2 * padding + 30)
+
+    window_width = int(columns * char_width + 2 * padding)
+    window_height = int(rows * line_height + 2 * padding + 30)
+    img_width = int(window_width + 2 * margin)
+    img_height = int(window_height + 2 * margin)
 
     # Create shadow background with transparency
-    shadow_offset = 20
+    shadow_offset = 10
     shadow_blur = 6
+    assert shadow_offset <= margin, f"{shadow_offset=}, {margin=}."
+
     base = Image.new(
         "RGBA",
-        (img_width + shadow_offset, img_height + shadow_offset),
+        (img_width, img_height),
         (255, 255, 255, 0),
     )
     shadow = Image.new("RGBA", (img_width, img_height), (255, 255, 255, 0))
     shadow_draw = ImageDraw.Draw(shadow)
     shadow_draw.rounded_rectangle(
-        [0, 0, img_width, img_height], radius=corner_radius, fill=(0, 0, 0, 180)
+        [
+            margin + shadow_offset,
+            margin + shadow_offset,
+            window_width + shadow_offset,
+            window_height + shadow_offset,
+        ],
+        radius=corner_radius,
+        fill=(0, 0, 0, 180),
     )
-    base.paste(shadow, (shadow_offset // 2, shadow_offset // 2), shadow)
+    base.paste(shadow, (margin, margin), shadow)
     base = base.filter(ImageFilter.GaussianBlur(shadow_blur))
 
     # Create rounded terminal window
-    img = Image.new("RGBA", (img_width, img_height), (0, 0, 0, 0))
-    mask = Image.new("L", (img_width, img_height), 0)
+    img = Image.new("RGBA", (window_width, window_height), (0, 0, 0, 0))
+    mask = Image.new("L", (window_width, window_height), 0)
     mask_draw = ImageDraw.Draw(mask)
     mask_draw.rounded_rectangle(
-        [0, 0, img_width, img_height], radius=corner_radius, fill=255
+        [0, 0, window_width, window_height], radius=corner_radius, fill=255
     )
 
-    terminal = Image.new("RGBA", (img_width, img_height), (40, 42, 54))
+    terminal = Image.new("RGBA", (window_width, window_height), (40, 42, 54))
     terminal_draw = ImageDraw.Draw(terminal)
 
     # Draw top bar with traffic lights
     bar_height = 30
-    terminal_draw.rectangle([(0, 0), (img_width, bar_height)], fill=(30, 30, 30))
+    terminal_draw.rectangle([(0, 0), (window_width, bar_height)], fill=(30, 30, 30))
     traffic_colors = [(255, 95, 86), (255, 189, 46), (39, 201, 63)]
     for i, color in enumerate(traffic_colors):
         terminal_draw.ellipse(
@@ -174,7 +187,7 @@ def render_terminal_image(
     img.paste(terminal, (0, 0), mask)
 
     # Paste onto shadow base
-    base.paste(img, (0, 0), img)
+    base.paste(img, (margin, margin), img)
     base = base.filter(ImageFilter.GaussianBlur(0.5))
     base.convert("RGB").save(output, "PNG")
 
