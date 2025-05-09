@@ -128,7 +128,7 @@ class Renderer:
         self.columns = columns
         self.corner_radius = corner_radius
 
-        self.window_layer = None
+        self.titlebar_layer = None
         self.font = None
         self.line_height = None
         self.mask = None
@@ -211,41 +211,20 @@ class Renderer:
             fill=255,
         )
 
-    def render_window_layer(self):
-        """Render a stylized terminal window background resembling macOS.
-
-        This method creates an image of a terminal window with a drop shadow which
-        can be customized by adjusting its offset and blur. The image is cached and
-        can be re-used as background for different code snippets.
-
-        Parameters:
-            shadow_offset (int): The distance in pixels that the shadow is offset
-                from the terminal window. Defaults to 10.
-            shadow_blur (int): The level of blur applied to the shadow. Higher
-                values result in a softer shadow. Defaults to 6.
-        """
+    def render_titlebar_layer(self):
+        """Render a stylized terminal window title bar resembling macOS."""
         # assert (
         #     self.shadow_offset <= self.margin
         # ), f"{self.shadow_offset=}, {self.margin=}."
 
-        # create mask to round edges of terminal window
-        self.mask = Image.new("L", (self.window_width, self.window_height), 0)
-        mask_draw = ImageDraw.Draw(self.mask)
-        mask_draw.rounded_rectangle(
-            [0, 0, self.window_width, self.window_height],
-            radius=self.corner_radius,
-            fill=255,
-        )
-
-        terminal = Image.new(
-            "RGBA", (self.window_width, self.window_height), (40, 42, 54)
-        )
+        terminal = Image.new("RGBA", (self.window_width, self.bar_height), (0, 0, 0, 0))
         terminal_draw = ImageDraw.Draw(terminal)
 
         # Draw top bar with traffic lights
-        self.bar_height = 30
-        terminal_draw.rectangle(
-            [(0, 0), (self.window_width, self.bar_height)], fill=(30, 30, 30)
+        terminal_draw.rounded_rectangle(
+            [0, 0, self.window_width, self.window_height],
+            radius=self.corner_radius,
+            fill=(30, 30, 30),
         )
         traffic_colors = [(255, 95, 86), (255, 189, 46), (39, 201, 63)]
         for i, color in enumerate(traffic_colors):
@@ -253,14 +232,13 @@ class Renderer:
                 [(self.padding + i * 20, 8), (self.padding + i * 20 + 12, 20)],
                 fill=color,
             )
-
-        self.window_layer = Image.new(
+        self.titlebar_layer = Image.new(
             "RGBA", (self.img_width, self.img_height), (0, 0, 0, 0)
         )
-        self.window_layer.paste(terminal, (self.margin, self.margin), self.mask)
+        self.titlebar_layer.paste(terminal, (self.margin, self.margin))
 
     def render_text_layer(self, code, style="monokai"):
-        # assert self.window_layer, "create window image before rendering text"
+        # assert self.titlebar_layer, "create window image before rendering text"
 
         formatter = TokenFormatter(style=style)
         highlight(code, PythonLexer(), formatter)
@@ -295,11 +273,9 @@ class Renderer:
             radius=self.corner_radius,
             fill=255,
         )
-        mask_draw.rectangle([(0, 0), (self.window_width, self.bar_height)], fill=0)
-
         self.text_layer = Image.new(
             "RGBA",
-            (self.window_width, self.window_height - self.bar_height),
+            (self.img_width, self.img_height),
             (0, 0, 0, 0),
         )
         self.text_layer.paste(terminal, (self.margin, self.margin), mask)
@@ -308,8 +284,8 @@ class Renderer:
         """Composit all layers."""
         self.final_image = self.bg_layer
         self.final_image.alpha_composite(self.shadow_layer)
-        self.final_image.alpha_composite(self.window_layer)
         self.final_image.alpha_composite(self.text_layer)
+        self.final_image.alpha_composite(self.titlebar_layer)
         self.final_image = self.final_image.filter(ImageFilter.GaussianBlur(blur))
 
     def save_image(self, filename="rendered_code.png"):
@@ -363,7 +339,7 @@ def main():
     )
     renderer.render_background_layer("green")
     renderer.render_shadow_layer()
-    renderer.render_window_layer()
+    renderer.render_titlebar_layer()
     renderer.render_text_layer(code, style=args.theme)
 
     renderer.composit_layers(blur=0.5)
