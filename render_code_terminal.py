@@ -3,7 +3,7 @@ import os
 import textwrap
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageColor, ImageDraw, ImageFilter, ImageFont
 from pygments import highlight
 from pygments.formatter import Formatter
 from pygments.lexers import PythonLexer
@@ -136,6 +136,11 @@ class Renderer:
         self.base = None
         self.bar_height = 30
 
+        self.shadow_offset = 10
+        self.shadow_blur = 6
+        self.shadow_color = "black"
+        self.shadow_alpha = 180
+
         self._init_font_properties()
         self._init_image_properties()
 
@@ -150,7 +155,49 @@ class Renderer:
         self.img_width = int(self.window_width + 2 * self.margin)
         self.img_height = int(self.window_height + 2 * self.margin)
 
-    def render_terminal_window(self, shadow_offset=10, shadow_blur=6):
+    def render_background(self, first_color="white", second_color=None):
+        rgba1 = any_color_to_rgba(first_color)
+
+        if second_color is None:
+            self.base = create_uniform_background(
+                self.img_width,
+                self.img_height,
+                color=first_color,
+            )
+        else:
+            self.base = create_gradient_background(
+                self.img_width,
+                self.img_height,
+                start_color=first_color,
+                end_color=second_color,
+            )
+
+    def render_shadow(
+        self,
+        shadow_offset=10,
+        shadow_blur=6,
+        shadow_color="black",
+        shadow_alpha=180,
+        corner_radius=6,
+    ):
+        rgba = any_color_to_rgba(shadow_color)
+        assert 0 <= shadow_alpha <= 255, f"{shadow_alpha=} is outside range [0..255]"
+        rgba = rgba[:3] + (shadow_alpha,)
+        shadow = Image.new("RGBA", (self.img_width, self.img_height), (0, 0, 0, 0))
+        shadow_draw = ImageDraw.Draw(shadow)
+        shadow_draw.rounded_rectangle(
+            [
+                self.margin + shadow_offset,
+                self.margin + shadow_offset,
+                self.margin + self.window_width + shadow_offset,
+                self.margin + self.window_height + shadow_offset,
+            ],
+            radius=corner_radius,
+            fill=(rgba),
+        )
+        return shadow.filter(ImageFilter.GaussianBlur(shadow_blur))
+
+    def render_terminal_window(self):
         """Render a stylized terminal window background resembling macOS.
 
         This method creates an image of a terminal window with a drop shadow which
@@ -163,31 +210,26 @@ class Renderer:
             shadow_blur (int): The level of blur applied to the shadow. Higher
                 values result in a softer shadow. Defaults to 6.
         """
-        assert shadow_offset <= self.margin, f"{shadow_offset=}, {self.margin=}."
+        assert (
+            self.shadow_offset <= self.margin
+        ), f"{self.shadow_offset=}, {self.margin=}."
 
-        # create background
-        self.base = Image.new(
-            "RGBA", (self.img_width, self.img_height), (255, 255, 255, 0)
-        )
-        self.base = create_purple_gradient(self.img_width, self.img_height)
+        # Monokai-style purple gradient (dark to light purple)
+        start_color = (93, 80, 124)
+        end_color = (151, 125, 201)
 
-        # create shadow
-        shadow = Image.new(
-            "RGBA", (self.img_width, self.img_height), (255, 255, 255, 0)
+        self.render_background(first_color=start_color, second_color=end_color)
+
+        shadow = self.render_shadow(
+            shadow_offset=self.shadow_offset,
+            shadow_blur=self.shadow_blur,
+            shadow_color=self.shadow_color,
+            shadow_alpha=180,
+            corner_radius=self.corner_radius,
         )
-        shadow_draw = ImageDraw.Draw(shadow)
-        shadow_draw.rounded_rectangle(
-            [
-                self.margin + shadow_offset,
-                self.margin + shadow_offset,
-                self.window_width + shadow_offset,
-                self.window_height + shadow_offset,
-            ],
-            radius=self.corner_radius,
-            fill=(0, 0, 0, 180),
-        )
-        self.base.paste(shadow, (self.margin, self.margin), shadow)
-        self.base = self.base.filter(ImageFilter.GaussianBlur(shadow_blur))
+
+        # composite shadow with background
+        self.base.alpha_composite(shadow)
 
         # Create rounded terminal window
         self.img = Image.new(
@@ -249,7 +291,7 @@ class Renderer:
         self.base = self.base.filter(ImageFilter.GaussianBlur(0.5))
 
     def save_image(self, filename="rendered_code.png"):
-        self.base.convert("RGB").save(filename, "PNG")
+        self.base.convert("RGBA").save(filename, "PNG")
         print(f'Image saved to "{filename}".')
 
 
@@ -297,19 +339,23 @@ def main():
         corner_radius=16,
         font_size=20,
     )
-    renderer.render_terminal_window(shadow_offset=10, shadow_blur=0)
+    renderer.render_terminal_window()
     renderer.render_text_to_window(code, style=args.theme)
     renderer.save_image(args.output)
 
 
-def create_purple_gradient(width, height, start_color=None, end_color=None):
+def create_uniform_background(width, height, color="white"):
+    color = any_color_to_rgba(color)
+    return Image.new("RGBA", (width, height), (color))
+
+
+def create_gradient_background(width, height, start_color="coral", end_color="salmon"):
     import math
 
-    # Monokai-style purple gradient (dark to light purple)
-    start_color = (93, 80, 124)
-    end_color = (151, 125, 201)
+    start_color = any_color_to_rgba(start_color)
+    end_color = any_color_to_rgba(end_color)
 
-    image = Image.new("RGB", (width, height))
+    image = Image.new("RGBA", (width, height))
     angle_rad = math.radians(-120)
 
     # Gradient vector components
@@ -334,6 +380,30 @@ def create_purple_gradient(width, height, start_color=None, end_color=None):
             image.putpixel((x, y), (r, g, b))
 
     return image
+
+
+def any_color_to_rgba(color):
+    """Converts any color name (str), RGB, or RGBA tuple to RGBA.
+
+    Find a list of colors at https://www.w3.org/TR/css-color-3/#svg-color
+    For example, color can be \"skyblue\", (255, 126, 0), or (0, 255, 80, 0).
+    """
+    if isinstance(color, str):
+        try:
+            return ImageColor.getcolor(color, "RGBA")
+        except ValueError:
+            pass
+
+    if isinstance(color, (tuple, list)):
+        if len(color) == 3:
+            color = tuple(color) + (0,)
+        if len(color) == 4:
+            if all(isinstance(c, int) and 0 <= c <= 255 for c in color):
+                return color
+
+    raise ValueError(
+        "Specify a valid color name, or an RGB/RGBA integer tuple with 0-255 range."
+    )
 
 
 if __name__ == "__main__":
