@@ -127,8 +127,6 @@ def render_terminal_image(
 
     # Create shadow background with transparency
     base = Image.new("RGBA", (img_width + 20, img_height + 20), (255, 255, 255, 0))
-    # shadow = Image.new("RGBA", (img_width, img_height), (0, 0, 0, 180))
-
     shadow = Image.new("RGBA", (img_width, img_height), (255, 255, 255, 0))
     shadow_draw = ImageDraw.Draw(shadow)
     shadow_draw.rounded_rectangle(
