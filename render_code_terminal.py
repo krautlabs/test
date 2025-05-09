@@ -131,84 +131,106 @@ class Renderer:
         self.rows = rows
         self.columns = columns
         self.corner_radius = corner_radius
+        self.window_image = None
+        self.font = None
+        self.line_height = None
+        self.mask = None
+        self.img = None
+        self.base = None
+        self.bar_height = 30
+        self._set_font_properties()
+        self._set_image_properties()
 
-    def render_terminal_image(self):
-        font = ImageFont.truetype(self.font_path, self.font_size)
-        line_height = int(self.font_size * self.line_spacing)
-        char_width = font.getlength("M")
+    def _set_font_properties(self):
+        self.font = ImageFont.truetype(self.font_path, self.font_size)
+        self.line_height = int(self.font_size * self.line_spacing)
+        self.char_width = self.font.getlength("M")
 
-        margin = self.margin
-        padding = self.padding
+    def _set_image_properties(self):
+        self.window_width = int(self.columns * self.char_width + 2 * self.padding)
+        self.window_height = int(self.rows * self.line_height + 2 * self.padding + 30)
+        self.img_width = int(self.window_width + 2 * self.margin)
+        self.img_height = int(self.window_height + 2 * self.margin)
 
-        window_width = int(self.columns * char_width + 2 * padding)
-        window_height = int(self.rows * line_height + 2 * padding + 30)
-        img_width = int(window_width + 2 * margin)
-        img_height = int(window_height + 2 * margin)
-
+    def render_terminal_window(self):
         # Create shadow background with transparency
         shadow_offset = 10
         shadow_blur = 6
-        assert shadow_offset <= margin, f"{shadow_offset=}, {margin=}."
+        assert shadow_offset <= self.margin, f"{shadow_offset=}, {self.margin=}."
 
-        base = Image.new(
+        self.base = Image.new(
             "RGBA",
-            (img_width, img_height),
+            (self.img_width, self.img_height),
             (255, 255, 255, 0),
         )
-        base = create_purple_gradient(img_width, img_height)
+        self.base = create_purple_gradient(self.img_width, self.img_height)
 
-        shadow = Image.new("RGBA", (img_width, img_height), (255, 255, 255, 0))
+        shadow = Image.new(
+            "RGBA", (self.img_width, self.img_height), (255, 255, 255, 0)
+        )
         shadow_draw = ImageDraw.Draw(shadow)
         shadow_draw.rounded_rectangle(
             [
-                margin + shadow_offset,
-                margin + shadow_offset,
-                window_width + shadow_offset,
-                window_height + shadow_offset,
+                self.margin + shadow_offset,
+                self.margin + shadow_offset,
+                self.window_width + shadow_offset,
+                self.window_height + shadow_offset,
             ],
             radius=self.corner_radius,
             fill=(0, 0, 0, 180),
         )
-        base.paste(shadow, (margin, margin), shadow)
-        base = base.filter(ImageFilter.GaussianBlur(shadow_blur))
+        self.base.paste(shadow, (self.margin, self.margin), shadow)
+        self.base = self.base.filter(ImageFilter.GaussianBlur(shadow_blur))
 
         # Create rounded terminal window
-        img = Image.new("RGBA", (window_width, window_height), (0, 0, 0, 0))
-        mask = Image.new("L", (window_width, window_height), 0)
-        mask_draw = ImageDraw.Draw(mask)
+        self.img = Image.new(
+            "RGBA", (self.window_width, self.window_height), (0, 0, 0, 0)
+        )
+        self.mask = Image.new("L", (self.window_width, self.window_height), 0)
+        mask_draw = ImageDraw.Draw(self.mask)
         mask_draw.rounded_rectangle(
-            [0, 0, window_width, window_height], radius=self.corner_radius, fill=255
+            [0, 0, self.window_width, self.window_height],
+            radius=self.corner_radius,
+            fill=255,
         )
 
-        terminal = Image.new("RGBA", (window_width, window_height), (40, 42, 54))
+        terminal = Image.new(
+            "RGBA", (self.window_width, self.window_height), (40, 42, 54)
+        )
         terminal_draw = ImageDraw.Draw(terminal)
 
         # Draw top bar with traffic lights
-        bar_height = 30
-        terminal_draw.rectangle([(0, 0), (window_width, bar_height)], fill=(30, 30, 30))
+        self.bar_height = 30
+        terminal_draw.rectangle(
+            [(0, 0), (self.window_width, self.bar_height)], fill=(30, 30, 30)
+        )
         traffic_colors = [(255, 95, 86), (255, 189, 46), (39, 201, 63)]
         for i, color in enumerate(traffic_colors):
             terminal_draw.ellipse(
-                [(padding + i * 20, 8), (padding + i * 20 + 12, 20)], fill=color
+                [(self.padding + i * 20, 8), (self.padding + i * 20 + 12, 20)], fill=color
             )
 
-        # Draw code
-        # TODO: create image/draw context separate from the terminal window
-        y = padding + bar_height
+        self.window_image = terminal
+
+    def render_text_to_window(self):
+        assert self.window_image, "create window image before rendering text"
+
+        terminal_draw = ImageDraw.Draw(self.window_image)
+        y = self.padding + self.bar_height
         for line in self.wrapped_lines:
-            x = padding
+            x = self.padding
             for token, color in line:
-                terminal_draw.text((x, y), token, font=font, fill=color)
-                x += font.getlength(token)
-            y += line_height
+                terminal_draw.text((x, y), token, font=self.font, fill=color)
+                x += self.font.getlength(token)
+            y += self.line_height
 
         # Apply rounded corners mask
-        img.paste(terminal, (0, 0), mask)
+        self.img.paste(self.window_image, (0, 0), self.mask)
 
         # Paste onto shadow base
-        base.paste(img, (margin, margin), img)
-        base = base.filter(ImageFilter.GaussianBlur(0.5))
-        base.convert("RGB").save(self.output, "PNG")
+        self.base.paste(self.img, (self.margin, self.margin), self.img)
+        self.base = self.base.filter(ImageFilter.GaussianBlur(0.5))
+        self.base.convert("RGB").save(self.output, "PNG")
 
 
 def main():
@@ -266,7 +288,8 @@ def main():
         corner_radius=16,
         font_size=20,
     )
-    renderer.render_terminal_image()
+    renderer.render_terminal_window()
+    renderer.render_text_to_window()
 
 
 def create_purple_gradient(width, height, start_color=None, end_color=None):
