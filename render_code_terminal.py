@@ -128,13 +128,15 @@ class Renderer:
         self.columns = columns
         self.corner_radius = corner_radius
 
-        self.window_image = None
+        self.window_layer = None
         self.font = None
         self.line_height = None
         self.mask = None
         self.img = None
-        self.base = None
+        self.bg_layer = None
         self.bar_height = 30
+        self.shadow_layer = None
+        self.final_image = None
 
         self.shadow_offset = 10
         self.shadow_blur = 6
@@ -155,24 +157,25 @@ class Renderer:
         self.img_width = int(self.window_width + 2 * self.margin)
         self.img_height = int(self.window_height + 2 * self.margin)
 
-    def render_background(self, first_color="white", second_color=None):
+    def render_background_layer(self, first_color="white", second_color=None):
+        """Render solid or gradient background layer."""
         rgba1 = any_color_to_rgba(first_color)
 
         if second_color is None:
-            self.base = create_uniform_background(
+            self.bg_layer = create_uniform_background(
                 self.img_width,
                 self.img_height,
                 color=first_color,
             )
         else:
-            self.base = create_gradient_background(
+            self.bg_layer = create_gradient_background(
                 self.img_width,
                 self.img_height,
                 start_color=first_color,
                 end_color=second_color,
             )
 
-    def render_shadow(
+    def render_shadow_layer(
         self,
         shadow_offset=10,
         shadow_blur=6,
@@ -180,6 +183,7 @@ class Renderer:
         shadow_alpha=180,
         corner_radius=6,
     ):
+        """Render floating window shadow layer."""
         rgba = any_color_to_rgba(shadow_color)
         assert 0 <= shadow_alpha <= 255, f"{shadow_alpha=} is outside range [0..255]"
         rgba = rgba[:3] + (shadow_alpha,)
@@ -195,9 +199,19 @@ class Renderer:
             radius=corner_radius,
             fill=(rgba),
         )
-        return shadow.filter(ImageFilter.GaussianBlur(shadow_blur))
+        self.shadow_layer = shadow.filter(ImageFilter.GaussianBlur(shadow_blur))
 
-    def render_terminal_window(self):
+    def create_window_mask(self):
+        # create mask to round edges of terminal window
+        self.mask2 = Image.new("L", (self.window_width, self.window_height), 0)
+        mask_draw = ImageDraw.Draw(self.mask2)
+        mask_draw.rounded_rectangle(
+            [0, 0, self.window_width, self.window_height],
+            radius=self.corner_radius,
+            fill=255,
+        )
+
+    def render_window_layer(self):
         """Render a stylized terminal window background resembling macOS.
 
         This method creates an image of a terminal window with a drop shadow which
@@ -210,31 +224,11 @@ class Renderer:
             shadow_blur (int): The level of blur applied to the shadow. Higher
                 values result in a softer shadow. Defaults to 6.
         """
-        assert (
-            self.shadow_offset <= self.margin
-        ), f"{self.shadow_offset=}, {self.margin=}."
+        # assert (
+        #     self.shadow_offset <= self.margin
+        # ), f"{self.shadow_offset=}, {self.margin=}."
 
-        # Monokai-style purple gradient (dark to light purple)
-        start_color = (93, 80, 124)
-        end_color = (151, 125, 201)
-
-        self.render_background(first_color=start_color, second_color=end_color)
-
-        shadow = self.render_shadow(
-            shadow_offset=self.shadow_offset,
-            shadow_blur=self.shadow_blur,
-            shadow_color=self.shadow_color,
-            shadow_alpha=180,
-            corner_radius=self.corner_radius,
-        )
-
-        # composite shadow with background
-        self.base.alpha_composite(shadow)
-
-        # Create rounded terminal window
-        self.img = Image.new(
-            "RGBA", (self.window_width, self.window_height), (0, 0, 0, 0)
-        )
+        # create mask to round edges of terminal window
         self.mask = Image.new("L", (self.window_width, self.window_height), 0)
         mask_draw = ImageDraw.Draw(self.mask)
         mask_draw.rounded_rectangle(
@@ -260,10 +254,13 @@ class Renderer:
                 fill=color,
             )
 
-        self.window_image = terminal
+        self.window_layer = Image.new(
+            "RGBA", (self.img_width, self.img_height), (0, 0, 0, 0)
+        )
+        self.window_layer.paste(terminal, (self.margin, self.margin), self.mask)
 
-    def render_text_to_window(self, code, style="monokai"):
-        assert self.window_image, "create window image before rendering text"
+    def render_text_layer(self, code, style="monokai"):
+        # assert self.window_layer, "create window image before rendering text"
 
         formatter = TokenFormatter(style=style)
         highlight(code, PythonLexer(), formatter)
@@ -274,7 +271,14 @@ class Renderer:
             self.rows,
         )
 
-        terminal_draw = ImageDraw.Draw(self.window_image)
+        terminal = Image.new(
+            "RGBA",
+            (self.window_width, self.window_height),
+            (40, 42, 54),
+        )
+        terminal_draw = ImageDraw.Draw(terminal)
+
+        # place text
         y = self.padding + self.bar_height
         for line in wrapped_lines:
             x = self.padding
@@ -283,15 +287,33 @@ class Renderer:
                 x += self.font.getlength(token)
             y += self.line_height
 
-        # Apply rounded corners mask
-        self.img.paste(self.window_image, (0, 0), self.mask)
+        # create mask to round edges of terminal window
+        mask = Image.new("L", (self.window_width, self.window_height), 0)
+        mask_draw = ImageDraw.Draw(mask)
+        mask_draw.rounded_rectangle(
+            [0, 0, self.window_width, self.window_height],
+            radius=self.corner_radius,
+            fill=255,
+        )
+        mask_draw.rectangle([(0, 0), (self.window_width, self.bar_height)], fill=0)
 
-        # Paste onto shadow base
-        self.base.paste(self.img, (self.margin, self.margin), self.img)
-        self.base = self.base.filter(ImageFilter.GaussianBlur(0.5))
+        self.text_layer = Image.new(
+            "RGBA",
+            (self.window_width, self.window_height - self.bar_height),
+            (0, 0, 0, 0),
+        )
+        self.text_layer.paste(terminal, (self.margin, self.margin), mask)
+
+    def composit_layers(self, blur=0.0):
+        """Composit all layers."""
+        self.final_image = self.bg_layer
+        self.final_image.alpha_composite(self.shadow_layer)
+        self.final_image.alpha_composite(self.window_layer)
+        self.final_image.alpha_composite(self.text_layer)
+        self.final_image = self.final_image.filter(ImageFilter.GaussianBlur(blur))
 
     def save_image(self, filename="rendered_code.png"):
-        self.base.convert("RGBA").save(filename, "PNG")
+        self.final_image.convert("RGBA").save(filename, "PNG")
         print(f'Image saved to "{filename}".')
 
 
@@ -339,9 +361,16 @@ def main():
         corner_radius=16,
         font_size=20,
     )
-    renderer.render_terminal_window()
-    renderer.render_text_to_window(code, style=args.theme)
+    renderer.render_background_layer("green")
+    renderer.render_shadow_layer()
+    renderer.render_window_layer()
+    renderer.render_text_layer(code, style=args.theme)
+
+    renderer.composit_layers(blur=0.5)
     renderer.save_image(args.output)
+
+
+###############################################################################
 
 
 def create_uniform_background(width, height, color="white"):
