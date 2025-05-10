@@ -40,6 +40,8 @@ class RenderConfig:
     shadow_blur: int = 6
     shadow_color: str = "black"
     shadow_alpha: int = 180
+    text_background_color: str | None = None
+    default_text_color: str | None = None
 
     def __post_init__(self):
         self.validate_font_path()
@@ -51,29 +53,42 @@ class RenderConfig:
 
     def validate_style(self):
         try:
-            get_style_by_name(self.style)
+            style_obj = get_style_by_name(self.style)
         except ClassNotFound:
             available = list(get_all_styles())
             raise StyleNotFoundError(self.style, available)
 
+        if self.text_background_color is None:
+            try:
+                self.text_background_color = style_obj.background_color
+            except AttributeError:
+                print(
+                    f"Style {self.style} has no background_color attribute, using white."
+                )
+                self.text_background_color = "white"
+
+        if self.default_text_color is None:
+            r, g, b, _ = any_color_to_rgba(self.text_background_color)
+            self.default_text_color = (255 - r, 255 - g, 255 - b)
+
 
 # Custom formatter to extract tokens with styles
 class TokenFormatter(Formatter):
-    def __init__(self, **options):
+    def __init__(self, default_text_color, **options):
         super().__init__(**options)
         self.styles = {}
         self.result = []
+        self.default_text_color = default_text_color
         style = get_style_by_name(options.get("style", "monokai"))
         for token, style_def in style:
             if style_def["color"]:
                 self.styles[token] = "#" + style_def["color"]
             else:
-                self.styles[token] = "#ffffff"
+                self.styles[token] = self.default_text_color
 
     def format(self, tokensource, outfile):
         for ttype, value in tokensource:
-            color = self.styles.get(ttype, "#ffffff")
-            print(f"'{value}' | {ttype} | {self.styles[ttype]}")
+            color = self.styles.get(ttype, self.default_text_color)
             self.result.append((value, color))
 
 
@@ -251,6 +266,8 @@ class Renderer:
             [0, 0, self.window_width, self.window_height],
             radius=self.cfg.corner_radius,
             fill=color,
+            # outline="green",
+            # width=2,
         )
         traffic_colors = [(255, 95, 86), (255, 189, 46), (39, 201, 63)]
         for i, color in enumerate(traffic_colors):
@@ -266,7 +283,10 @@ class Renderer:
     def render_text_layer(self, code, style="monokai", background_color=None):
         """Render text area according to style on top of solid background."""
 
-        formatter = TokenFormatter(style=style)
+        formatter = TokenFormatter(
+            default_text_color=self.cfg.default_text_color,
+            style=style,
+        )
         highlight(code, PythonLexer(), formatter)
 
         wrapped_lines = get_wrapped_lines(
@@ -276,8 +296,7 @@ class Renderer:
         )
 
         if background_color is None:
-            background_color = get_style_by_name(self.cfg.style).background_color
-
+            background_color = self.cfg.text_background_color
         background_color = any_color_to_rgba(background_color)
 
         terminal = Image.new(
