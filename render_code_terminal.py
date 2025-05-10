@@ -8,7 +8,19 @@ from PIL import Image, ImageColor, ImageDraw, ImageFilter, ImageFont
 from pygments import highlight
 from pygments.formatter import Formatter
 from pygments.lexers import PythonLexer
-from pygments.styles import get_style_by_name
+from pygments.styles import get_all_styles, get_style_by_name
+from pygments.util import ClassNotFound
+
+
+class StyleNotFoundError(ClassNotFound):
+    def __init__(self, style_name, available_styles):
+        message = (
+            f"Invalid style '{style_name}'.\n"
+            f"Available styles are: {', '.join(available_styles)}"
+        )
+        super().__init__(message)
+        self.style_name = style_name
+        self.available_styles = available_styles
 
 
 @dataclass
@@ -29,6 +41,21 @@ class RenderConfig:
     shadow_color: str = "black"
     shadow_alpha: int = 180
 
+    def __post_init__(self):
+        self.validate_font_path()
+        self.validate_style()
+
+    def validate_font_path(self):
+        if not Path(self.font_path).is_file():
+            raise FileNotFoundError(f"Font file not found: {self.font_path}")
+
+    def validate_style(self):
+        try:
+            get_style_by_name(self.style)
+        except ClassNotFound:
+            available = list(get_all_styles())
+            raise StyleNotFoundError(self.style, available)
+
 
 # Custom formatter to extract tokens with styles
 class TokenFormatter(Formatter):
@@ -46,6 +73,7 @@ class TokenFormatter(Formatter):
     def format(self, tokensource, outfile):
         for ttype, value in tokensource:
             color = self.styles.get(ttype, "#ffffff")
+            print(f"'{value}' | {ttype} | {self.styles[ttype]}")
             self.result.append((value, color))
 
 
@@ -235,7 +263,7 @@ class Renderer:
         )
         self.titlebar_layer.paste(terminal, (self.cfg.margin, self.cfg.margin))
 
-    def render_text_layer(self, code, style="monokai"):
+    def render_text_layer(self, code, style="monokai", background_color=None):
         """Render text area according to style on top of solid background."""
 
         formatter = TokenFormatter(style=style)
@@ -247,10 +275,15 @@ class Renderer:
             self.cfg.rows,
         )
 
+        if background_color is None:
+            background_color = get_style_by_name(self.cfg.style).background_color
+
+        background_color = any_color_to_rgba(background_color)
+
         terminal = Image.new(
             "RGBA",
             (self.window_width, self.window_height),
-            (40, 42, 54),
+            background_color,
         )
         terminal_draw = ImageDraw.Draw(terminal)
 
@@ -316,7 +349,7 @@ def main():
     )
     parser.add_argument("source_file", type=str, help="Path to the .py source file")
     parser.add_argument(
-        "--theme", type=str, default="monokai", help="Syntax highlighting theme"
+        "--style", type=str, default="monokai", help="Syntax highlighting style"
     )
     parser.add_argument(
         "--font",
@@ -338,11 +371,15 @@ def main():
     )
     args = parser.parse_args()
 
+    # if not Path(args.font).exists():
+    #     raise FileNotFoundError("Font file not found. Provide a valid TTF file.")
+    #     print(list(get_all_styles()))
+
     if not Path(args.source_file).exists() or not args.source_file.endswith(".py"):
         raise FileNotFoundError("The source file must exist and be a .py file.")
 
-    if not Path(args.font).exists():
-        raise FileNotFoundError("Font file not found. Provide a valid TTF file.")
+    # if not Path(args.font).exists():
+    #     raise FileNotFoundError("Font file not found. Provide a valid TTF file.")
 
     with open(args.source_file, "r", encoding="utf-8") as f:
         code = f.read()
@@ -351,6 +388,7 @@ def main():
         columns=args.columns,
         rows=args.rows,
         font_path=args.font,
+        style=args.style,
     )
     renderer = Renderer(
         code=code,
@@ -363,7 +401,7 @@ def main():
     # Monokai-style purple gradient (dark to light purple)
     end_color = (93, 80, 124)
     start_color = (151, 125, 201)
-    renderer.render_background_layer(first_color=start_color, second_color=end_color)
+    # renderer.render_background_layer(first_color=start_color, second_color=end_color)
     renderer.render()
     renderer.save_image(args.output)
 
@@ -452,7 +490,8 @@ def any_color_to_rgba(color):
                 return color
 
     raise ValueError(
-        "Specify a valid color name, or an RGB/RGBA integer tuple with 0-255 range."
+        "Specify a valid color name, hex color, or an RGB/RGBA tuple "
+        "with integers in the 0-255 range."
     )
 
 
