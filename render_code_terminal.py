@@ -1,6 +1,7 @@
 import argparse
 import os
 import textwrap
+from dataclasses import dataclass
 from pathlib import Path
 
 from PIL import Image, ImageColor, ImageDraw, ImageFilter, ImageFont
@@ -8,6 +9,25 @@ from pygments import highlight
 from pygments.formatter import Formatter
 from pygments.lexers import PythonLexer
 from pygments.styles import get_style_by_name
+
+
+@dataclass
+class RenderConfig:
+    font_path: str = "./fonts/JetBrainsMono-Regular.ttf"
+    style: str = "monokai"
+    font_size: int = 20
+    padding: int = 20
+    margin: int = 20
+    line_spacing: float = 1.4
+    rows: int = 24
+    columns: int = 80
+    corner_radius: int = 16
+    post_blur: float = 0.5
+    bar_height: int = 30
+    shadow_offset: int = 10
+    shadow_blur: int = 6
+    shadow_color: str = "black"
+    shadow_alpha: int = 180
 
 
 # Custom formatter to extract tokens with styles
@@ -108,31 +128,9 @@ def get_wrapped_lines(code_tokens, columns, rows):
 
 
 class Renderer:
-    def __init__(
-        self,
-        code,
-        font_path,
-        style="monokai",
-        font_size=20,
-        padding=20,
-        margin=20,
-        line_spacing=1.4,
-        rows=24,
-        columns=80,
-        corner_radius=16,
-        post_blur=0.5,
-    ):
+    def __init__(self, code, config: RenderConfig):
         self.code = code
-        self.style = style
-        self.font_path = font_path
-        self.font_size = font_size
-        self.padding = padding
-        self.margin = margin
-        self.line_spacing = line_spacing
-        self.rows = rows
-        self.columns = columns
-        self.corner_radius = corner_radius
-        self.post_blur = 0.5
+        self.cfg = config
 
         self.font = None
         self.line_height = None
@@ -153,15 +151,19 @@ class Renderer:
         self._init_image_properties()
 
     def _init_font_properties(self):
-        self.font = ImageFont.truetype(self.font_path, self.font_size)
-        self.line_height = int(self.font_size * self.line_spacing)
+        self.font = ImageFont.truetype(self.cfg.font_path, self.cfg.font_size)
+        self.line_height = int(self.cfg.font_size * self.cfg.line_spacing)
         self.char_width = self.font.getlength("M")
 
     def _init_image_properties(self):
-        self.window_width = int(self.columns * self.char_width + 2 * self.padding)
-        self.window_height = int(self.rows * self.line_height + 2 * self.padding + 30)
-        self.img_width = int(self.window_width + 2 * self.margin)
-        self.img_height = int(self.window_height + 2 * self.margin)
+        self.window_width = int(
+            self.cfg.columns * self.char_width + 2 * self.cfg.padding
+        )
+        self.window_height = int(
+            self.cfg.rows * self.line_height + 2 * self.cfg.padding + 30
+        )
+        self.img_width = int(self.window_width + 2 * self.cfg.margin)
+        self.img_height = int(self.window_height + 2 * self.cfg.margin)
 
     def render_background_layer(self, first_color="white", second_color=None):
         """Render solid or gradient background layer."""
@@ -197,10 +199,10 @@ class Renderer:
         shadow_draw = ImageDraw.Draw(shadow)
         shadow_draw.rounded_rectangle(
             [
-                self.margin + shadow_offset,
-                self.margin + shadow_offset,
-                self.margin + self.window_width + shadow_offset,
-                self.margin + self.window_height + shadow_offset,
+                self.cfg.margin + shadow_offset,
+                self.cfg.margin + shadow_offset,
+                self.cfg.margin + self.window_width + shadow_offset,
+                self.cfg.margin + self.window_height + shadow_offset,
             ],
             radius=corner_radius,
             fill=(rgba),
@@ -219,19 +221,19 @@ class Renderer:
         # Draw top bar with traffic lights
         terminal_draw.rounded_rectangle(
             [0, 0, self.window_width, self.window_height],
-            radius=self.corner_radius,
+            radius=self.cfg.corner_radius,
             fill=color,
         )
         traffic_colors = [(255, 95, 86), (255, 189, 46), (39, 201, 63)]
         for i, color in enumerate(traffic_colors):
             terminal_draw.ellipse(
-                [(self.padding + i * 20, 8), (self.padding + i * 20 + 12, 20)],
+                [(self.cfg.padding + i * 20, 8), (self.cfg.padding + i * 20 + 12, 20)],
                 fill=color,
             )
         self.titlebar_layer = Image.new(
             "RGBA", (self.img_width, self.img_height), (0, 0, 0, 0)
         )
-        self.titlebar_layer.paste(terminal, (self.margin, self.margin))
+        self.titlebar_layer.paste(terminal, (self.cfg.margin, self.cfg.margin))
 
     def render_text_layer(self, code, style="monokai"):
         """Render text area according to style on top of solid background."""
@@ -241,8 +243,8 @@ class Renderer:
 
         wrapped_lines = get_wrapped_lines(
             formatter.result,
-            self.columns,
-            self.rows,
+            self.cfg.columns,
+            self.cfg.rows,
         )
 
         terminal = Image.new(
@@ -253,9 +255,9 @@ class Renderer:
         terminal_draw = ImageDraw.Draw(terminal)
 
         # place text
-        y = self.padding + self.bar_height
+        y = self.cfg.padding + self.cfg.bar_height
         for line in wrapped_lines:
-            x = self.padding
+            x = self.cfg.padding
             for token, color in line:
                 terminal_draw.text((x, y), token, font=self.font, fill=color)
                 x += self.font.getlength(token)
@@ -266,7 +268,7 @@ class Renderer:
         mask_draw = ImageDraw.Draw(mask)
         mask_draw.rounded_rectangle(
             [0, 0, self.window_width, self.window_height],
-            radius=self.corner_radius,
+            radius=self.cfg.corner_radius,
             fill=255,
         )
         self.text_layer = Image.new(
@@ -274,11 +276,11 @@ class Renderer:
             (self.img_width, self.img_height),
             (0, 0, 0, 0),
         )
-        self.text_layer.paste(terminal, (self.margin, self.margin), mask)
+        self.text_layer.paste(terminal, (self.cfg.margin, self.cfg.margin), mask)
 
     def composit_layers(self, blur=0.0):
         """Composit all layers."""
-        self.final_image = self.bg_layer
+        self.final_image = self.bg_layer.copy()
         self.final_image.alpha_composite(self.shadow_layer)
         self.final_image.alpha_composite(self.text_layer)
         self.final_image.alpha_composite(self.titlebar_layer)
@@ -289,17 +291,17 @@ class Renderer:
             self.render_background_layer()
         if self.shadow_layer is None:
             self.render_shadow_layer(
-                shadow_offset=self.shadow_offset,
-                shadow_blur=self.shadow_blur,
-                shadow_color=self.shadow_color,
-                shadow_alpha=self.shadow_alpha,
-                corner_radius=self.corner_radius,
+                shadow_offset=self.cfg.shadow_offset,
+                shadow_blur=self.cfg.shadow_blur,
+                shadow_color=self.cfg.shadow_color,
+                shadow_alpha=self.cfg.shadow_alpha,
+                corner_radius=self.cfg.corner_radius,
             )
         if self.titlebar_layer is None:
             self.render_titlebar_layer()
         if self.text_layer is None:
-            self.render_text_layer(self.code, style=self.style)
-        self.composit_layers(blur=self.post_blur)
+            self.render_text_layer(self.code, style=self.cfg.style)
+        self.composit_layers(blur=self.cfg.post_blur)
 
     def save_image(self, filename="rendered_code.png"):
         if self.final_image is None:
@@ -345,21 +347,48 @@ def main():
     with open(args.source_file, "r", encoding="utf-8") as f:
         code = f.read()
 
+    config = RenderConfig(
+        columns=args.columns,
+        rows=args.rows,
+        font_path=args.font,
+    )
     renderer = Renderer(
         code=code,
-        font_path=args.font,
-        style=args.theme,
-        rows=args.rows,
-        columns=args.columns,
-        corner_radius=16,
-        font_size=20,
+        config=config,
     )
 
     # individual layers can be manually rendered
     # renderer.render_background_layer(first_color=(0, 0, 0, 0))
 
+    # Monokai-style purple gradient (dark to light purple)
+    end_color = (93, 80, 124)
+    start_color = (151, 125, 201)
+    renderer.render_background_layer(first_color=start_color, second_color=end_color)
     renderer.render()
     renderer.save_image(args.output)
+
+    # import numpy as np
+    #
+    # final_frames = 10
+    # for i, j in enumerate(np.cumsum(np.random.choice([3, 5, 7], size=200))):
+    #     if j > len(code):
+    #         j = len(code)
+    #         final_frames -= 1
+    #     filename = f"gif/out{i:03d}.png"
+    #     renderer.render_text_layer(code[:j])
+    #     renderer.composit_layers(blur=0.5)
+    #     renderer.save_image(filename)
+    #     if final_frames < 1:
+    #         break
+    # magick -delay 20 -loop 0 gif/*.png output.gif
+
+    # Step 1: Create a palette (for good color quantization)
+    # ffmpeg -y -i gif/out%02d.png -vf palettegen palette.png
+
+    # Step 2: Use the palette to make the GIF
+    # ffmpeg -i gif/out%03d.png -i palette.png -lavfi "fps=10 [x]; [x][1:v] paletteuse" output.gif
+
+    # ffmpeg -framerate 1 -i gif/out%02d.png -c:v libx264 -r 60 -pix_fmt yuv420p output.mp4
 
 
 ###############################################################################
@@ -377,7 +406,7 @@ def create_gradient_background(width, height, start_color="coral", end_color="sa
     end_color = any_color_to_rgba(end_color)
 
     image = Image.new("RGBA", (width, height))
-    angle_rad = math.radians(-120)
+    angle_rad = math.radians(60)
 
     # Gradient vector components
     dx = math.cos(angle_rad)
