@@ -6,9 +6,9 @@
 
 ---
 
-## ✨ Features
+## Features
 
-- **Syntax Highlighting** – Utilizes Pygments with support for dozens of languages.
+- **Syntax Highlighting** – Utilizes [Pygments](https://pygments.org) with support for dozens of languages.
 - **macOS-style Terminal UI** – Recreates the terminal header and shadow.
 - **Fonts** – Use any TTF font, comes with JetBrains Mono for elegant, readable code.
 - **Fully Scriptable** – Designed to run headlessly from scripts, CI pipelines, or other Python apps.
@@ -43,7 +43,7 @@ python render_code_terminal.py test.py --rows 40
 from x import Tool
 
 tool = Tool()
-tool.render_to_file(
+tool.render_code_to_file(
     code='print("Hello, world!")',
     output_path='hello_world.png'
 )
@@ -62,19 +62,13 @@ renderer = Renderer(
     code='print("Hello, world!")',
     config=config,
 )
-
-# optionally modify a specific layer
-renderer.render_background_layer(first_color=start_color, second_color=end_color)
-
-# render all layers
-renderer.render()
-renderer.final_image.show()
+renderer.render()  # render all layers
+renderer.final_image.show()  # access PIL image object
 ```
 
 Tool renders four distinct layers: background, shadow, text, and title bar. They are composited into the final image. This approach allows the modification of individual layers for an animation without having to re-render any other layers.
 
 ```python
-
 renderer.bg_layer
 renderer.shadow_layer
 renderer.text_layer
@@ -82,16 +76,48 @@ renderer.titlebar_layer
 renderer.final_image
 ```
 
-## Font
+It's possible to efficiently generate an animation by only modifying the layer that is changing.
+
+```python
+
+code='print("Hello, world!")',
+for style in ["monokai", ""]:
+    renderer.render_text_layer(code=code, style=style)
+    renderer.render()
+    renderer.final_image.show()
+    print(color)
+```
+
+## Fonts
 
 The tool comes with the [JetBrainsMono](https://github.com/JetBrains/JetBrainsMono) font. Direct the tool to your fonts folder for more font choices.
 
 
+## Styles
+
+Tool uses the Pygments library which comes with a range of styles that can be selected with the `--style` options. The complete list can be found [here](https://pygments.org/styles/).
+
+Some dark styles:
+- monokai
+- zenburn
+- nord
+- dracula
+- gruvbox-dark
+
+
+Some light styles:
+- solarized-light
+- gruvbox-light
+- friendly
+- friendly_grayscale
+- murphy
+
+
 ## Alternatives
 
-[Raycast](https://www.codepng.app/)
-[codepng](https://www.codepng.app/)
-[Code Beautify](https://codebeautify.org/)
+- [Raycast](https://www.codepng.app/)
+- [codepng](https://www.codepng.app/)
+- [Code Beautify](https://codebeautify.org/)
 
 ## Font License
 
