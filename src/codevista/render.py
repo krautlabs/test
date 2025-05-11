@@ -170,7 +170,7 @@ def get_wrapped_lines(code_tokens, columns, rows):
     return wrapped_lines
 
 
-class Renderer:
+class Render:
     def __init__(self, code, config: RenderConfig):
         self.code = code
         self.cfg = config
