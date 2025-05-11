@@ -1,6 +1,6 @@
-# Tool
+# CodeVista
 
-**Tool** is a Python-based tool for generating beautiful, high-quality images of code with syntax highlighting, rendered in a macOS-style terminal window. Built for automation and easy customization, it can be easily integrated into scripts or pipelines.
+**CodeVista** is a Python-based tool for generating beautiful, high-quality images of code with syntax highlighting, rendered in a macOS-style terminal window. Built for automation and easy customization, it can be easily integrated into scripts or pipelines.
 
 ![example-image](./rendered_terminal.png)
 
@@ -21,7 +21,7 @@
 ## Installation
 
 ```bash
-pip install tool
+pip install codevista
 ```
 
 ## Command Line Usage
@@ -29,20 +29,20 @@ pip install tool
 Render the code in `test.py` in a default 80x24 window. By default, the window scrolls with the code and only the last 24 rows will be shown if the code does not fit into the window.
 
 ```bash
-python render_code_terminal.py test.py
+python codevista.py test.py
 ```
 
 Use the `--columns` and `--rows` options to extend the window.
 ```bash
-python render_code_terminal.py test.py --rows 40
+python codevista.py test.py --rows 40
 ```
 
 ## Programmatic Usage
 
 ```python
-from x import Tool
+from codevista import CodeVista, CodeVistaConfig
 
-tool = Tool()
+tool = CodeVista()
 tool.render_code_to_file(
     code='print("Hello, world!")',
     output_path='hello_world.png'
@@ -52,13 +52,13 @@ tool.render_code_to_file(
 A slightly more custom way to call the tool is to create a `RenderConfig` to overwrite specific parameters.
 
 ```python
-config = RenderConfig(
+config = CodeVistaConfig(
     shadow_offset = 20,
     shadow_blur = 3,
     shadow_color = "purple",
     shadow_alpha = 220,
 )
-renderer = Renderer(
+renderer = CodeVista(
     code='print("Hello, world!")',
     config=config,
 )
@@ -66,7 +66,7 @@ renderer.render()  # render all layers
 renderer.final_image.show()  # access PIL image object
 ```
 
-Tool renders four distinct layers: background, shadow, text, and title bar. They are composited into the final image. This approach allows the modification of individual layers for an animation without having to re-render any other layers.
+CodeVista renders four distinct layers: background, shadow, text, and title bar. They are composited into the final image. This approach allows the modification of individual layers for an animation without having to re-render any other layers.
 
 ```python
 renderer.bg_layer
@@ -95,7 +95,7 @@ The tool comes with the [JetBrainsMono](https://github.com/JetBrains/JetBrainsMo
 
 ## Styles
 
-Tool uses the Pygments library which comes with a range of styles that can be selected with the `--style` options. The complete list can be found [here](https://pygments.org/styles/).
+CodeVista uses the Pygments library which comes with a range of styles that can be selected with the `--style` options. The complete list can be found [here](https://pygments.org/styles/).
 
 Some dark styles:
 - monokai
@@ -115,12 +115,17 @@ Some light styles:
 
 ## Alternatives
 
-- [Raycast](https://www.codepng.app/)
+- [Raycast](https://www.ray.so/)
 - [codepng](https://www.codepng.app/)
 - [Code Beautify](https://codebeautify.org/)
+- [Carbon](https://carbon.now.sh)
+
 
 ## Font License
 
 JetBrains Mono typeface is available under the [OFL-1.1 License](https://github.com/JetBrains/JetBrainsMono/blob/master/OFL.txt) and can be used free of charge, for both commercial and non-commercial purposes. You do not need to give credit to JetBrains, although we will appreciate it very much if you do. See [JetBrainsMono License](https://github.com/JetBrains/JetBrainsMono?tab=readme-ov-file#license) 
 
+
 ## License
+
+With the exception of the font files, the code and assets contained in this repository are licensed under [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.txt) as detailed in the `LICENSE` file.
