@@ -1,0 +1,8 @@
+[JetBrainsMono.styles]
+regular = "JetBrainsMono-Regular.ttf"
+bold = "JetBrainsMono-Bold.ttf"
+italic = "JetBrainsMono-Italic.ttf"
+bold_italic = "JetBrainsMono-BoldItalic.ttf"
+
+[JetBrainsMono.origin]
+url = "https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/fonts/ttf/"
