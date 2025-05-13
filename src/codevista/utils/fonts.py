@@ -26,7 +26,13 @@ def join_base_and_filename(base: str, filename: str):
         return os.path.join(base, filename)
 
 
-def load_config():
+def find_font(name):
+    config = load_font_config()
+    if name in config:
+        print(f"found font {name}")
+
+
+def load_font_config():
     config_resource = files("codevista") / "fonts" / FONT_CONFIG
     with as_file(config_resource) as config_path:
         with open(config_path, "rb") as f:
@@ -93,7 +99,7 @@ def main():
     )
 
     args = parser.parse_args()
-    config = load_config()
+    config = load_font_config()
 
     if args.list:
         list_fonts(config)

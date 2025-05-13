@@ -2,6 +2,7 @@ import argparse
 import os
 import textwrap
 from dataclasses import dataclass
+from importlib.resources import as_file, files
 from pathlib import Path
 
 from PIL import Image, ImageColor, ImageDraw, ImageFilter, ImageFont
@@ -12,6 +13,7 @@ from pygments.styles import get_all_styles, get_style_by_name
 from pygments.util import ClassNotFound
 
 from codevista.args import get_args
+from codevista.utils.fonts import find_font
 from codevista.utils.image import (
     any_color_to_rgba,
     create_gradient_background,
@@ -32,7 +34,7 @@ class StyleNotFoundError(ClassNotFound):
 
 @dataclass
 class RenderConfig:
-    font_path: str = "./fonts/JetBrainsMono-Regular.ttf"
+    font_path: str | None = None
     style: str = "monokai"
     font_size: int = 20
     padding: int = 20
@@ -55,6 +57,11 @@ class RenderConfig:
         self.validate_style()
 
     def validate_font_path(self):
+        if self.font_path is None:
+            resource = files("codevista") / "fonts" / "JetBrainsMono-Regular.ttf"
+            with as_file(resource) as font_path:
+                self.font_path = Path(resource)
+
         if not Path(self.font_path).is_file():
             raise FileNotFoundError(f"Font file not found: {self.font_path}")
 

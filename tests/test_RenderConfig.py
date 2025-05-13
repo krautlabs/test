@@ -29,6 +29,10 @@ def test_invalid_font_path():
         RenderConfig(font_path=invalid_font_path)
 
 
+def test_default_font_path():
+    RenderConfig(font_path=None)
+
+
 def test_invalid_style(monkeypatch):
 
     def mock_get_all_styles():
