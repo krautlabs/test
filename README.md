@@ -2,7 +2,7 @@
 
 **PyCheese** is a Python-based tool for generating beautiful, high-quality images of code with syntax highlighting, rendered in a macOS-style terminal window. Built for automation and easy customization, it can be easily integrated into scripts or pipelines.
 
-![example-image](./rendered_terminal.png)
+![example-image](./docs/rendered_terminal.png)
 
 ---
 
