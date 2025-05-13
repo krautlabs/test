@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pycheese"
-version = "0.1.0"
+dynamic = ["version"]
 description = "A short description of your package"
 authors = [
     { name="Krautlabs", email="dev@krautlabs.com" }
@@ -23,20 +23,11 @@ dependencies = [
     "requests>=2.32.3",
 ]
 
+[tool.hatch.version]
+path = "src/pycheese/__init__.py"
+
 [project.urls]
 Homepage = "https://github.com/krautlabs/pycheese"
 
 [project.scripts]
 pycheese= "pycheese.render:main"
-
-[tool.hatch.metadata]
-sources = ["src"]
-
-[tool.hatch.build]
-include = [
-  "src/pycheese/fonts/*.ttf",
-  "src/pycheese/fonts/font_config.toml"
-]
-
-# tar -tzf dist/pycheese-0.1.0.tar.gz
-# unzip -l dist/pycheese-0.1.0-py3-none-any.whl

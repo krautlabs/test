@@ -6,3 +6,5 @@ __all__ = [
     "StyleNotFoundError",
     "TokenFormatter",
 ]
+
+__version__ = "0.1.1"

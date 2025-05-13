@@ -15,6 +15,9 @@ html:
 	coverage html
 	@echo "HTML report generated at htmlcov/index.html"
 
+build:
+	hatch build
+
 # Remove coverage files and __pycache__
 clean:
-	rm -rf .coverage htmlcov __pycache__ */__pycache__ .pytest_cache
+	rm -rf .coverage htmlcov dist __pycache__ */__pycache__ .pytest_cache
