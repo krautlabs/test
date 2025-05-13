@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codevista"
+version = "0.1.0"
+description = "A short description of your package"
+authors = [
+    { name="Krautlabs", email="info@krautlabs.com" }
+]
+license = { text = "GPL-3.0-or-later" }
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "coverage>=7.8.0",
+    "ipython>=9.2.0",
+    "numpy>=2.2.5",
+    "pillow>=11.2.1",
+    "pygments>=2.19.1",
+    "pytest>=8.3.5",
+    "requests>=2.32.3",
+]
+
+[project.urls]
+Homepage = "https://github.com/krautlabs/codevista"
+
+[project.scripts]
+codevista= "codevista.render:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+license-files = ["LICENSE"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"your_package" = ["fonts/*.ttf"]
