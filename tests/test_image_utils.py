@@ -1,7 +1,7 @@
 import pytest
 from PIL import Image
 
-from codevista.utils.image import create_uniform_background
+from pycheese.utils.image import create_uniform_background
 
 
 def test_create_uniform_background_default_color():

@@ -12,9 +12,9 @@ from pygments.lexers import PythonLexer
 from pygments.styles import get_all_styles, get_style_by_name
 from pygments.util import ClassNotFound
 
-from codevista.args import get_args
-from codevista.utils.fonts import find_font
-from codevista.utils.image import (
+from pycheese.args import get_args
+from pycheese.utils.fonts import find_font
+from pycheese.utils.image import (
     any_color_to_rgba,
     create_gradient_background,
     create_uniform_background,
@@ -58,7 +58,7 @@ class RenderConfig:
 
     def validate_font_path(self):
         if self.font_path is None:
-            resource = files("codevista") / "fonts" / "JetBrainsMono-Regular.ttf"
+            resource = files("pycheese") / "fonts" / "JetBrainsMono-Regular.ttf"
             with as_file(resource) as font_path:
                 self.font_path = Path(resource)
 

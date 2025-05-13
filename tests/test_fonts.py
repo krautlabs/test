@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from codevista.utils.fonts import join_base_and_filename
+from pycheese.utils.fonts import join_base_and_filename
 
 
 @pytest.mark.parametrize(

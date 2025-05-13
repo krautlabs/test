@@ -33,7 +33,7 @@ def find_font(name):
 
 
 def load_font_config():
-    config_resource = files("codevista") / "fonts" / FONT_CONFIG
+    config_resource = files("pycheese") / "fonts" / FONT_CONFIG
     with as_file(config_resource) as config_path:
         with open(config_path, "rb") as f:
             return tomllib.load(f)
@@ -48,7 +48,7 @@ def list_fonts(config):
 
 
 def update_font(filename, url):
-    font_resources = files("codevista") / "fonts"
+    font_resources = files("pycheese") / "fonts"
 
     with as_file(font_resources) as font_path:
         font_dir = Path(font_path)

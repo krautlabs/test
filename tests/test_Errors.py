@@ -1,6 +1,6 @@
 import pytest
 
-from codevista import StyleNotFoundError
+from pycheese import StyleNotFoundError
 
 invalid_style = "invalid_style"
 available_styles = ("monokai", "solarized", "gruvbox")

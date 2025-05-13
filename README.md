@@ -1,6 +1,6 @@
-# CodeVista
+# PyCheese
 
-**CodeVista** is a Python-based tool for generating beautiful, high-quality images of code with syntax highlighting, rendered in a macOS-style terminal window. Built for automation and easy customization, it can be easily integrated into scripts or pipelines.
+**PyCheese** is a Python-based tool for generating beautiful, high-quality images of code with syntax highlighting, rendered in a macOS-style terminal window. Built for automation and easy customization, it can be easily integrated into scripts or pipelines.
 
 ![example-image](./rendered_terminal.png)
 
@@ -21,7 +21,7 @@
 ## Installation
 
 ```bash
-pip install codevista
+pip install pycheese
 ```
 
 ## Command Line Usage
@@ -29,20 +29,20 @@ pip install codevista
 Render the code in `test.py` in a default 80x24 window. By default, the window scrolls with the code and only the last 24 rows will be shown if the code does not fit into the window.
 
 ```bash
-python codevista.py test.py
+python pycheese.py test.py
 ```
 
 Use the `--columns` and `--rows` options to extend the window.
 ```bash
-python codevista.py test.py --rows 40
+python pycheese.py test.py --rows 40
 ```
 
 ## Programmatic Usage
 
 ```python
-from codevista import CodeVista, CodeVistaConfig
+from pycheese import PyCheese, PyCheeseConfig
 
-tool = CodeVista()
+tool = PyCheese()
 tool.render_code_to_file(
     code='print("Hello, world!")',
     output_path='hello_world.png'
@@ -52,13 +52,13 @@ tool.render_code_to_file(
 A slightly more custom way to call the tool is to create a `RenderConfig` to overwrite specific parameters.
 
 ```python
-config = CodeVistaConfig(
+config = PyCheeseConfig(
     shadow_offset = 20,
     shadow_blur = 3,
     shadow_color = "purple",
     shadow_alpha = 220,
 )
-renderer = CodeVista(
+renderer = PyCheese(
     code='print("Hello, world!")',
     config=config,
 )
@@ -66,7 +66,7 @@ renderer.render()  # render all layers
 renderer.final_image.show()  # access PIL image object
 ```
 
-CodeVista renders four distinct layers: background, shadow, text, and title bar. They are composited into the final image. This approach allows the modification of individual layers for an animation without having to re-render any other layers.
+PyCheese renders four distinct layers: background, shadow, text, and title bar. They are composited into the final image. This approach allows the modification of individual layers for an animation without having to re-render any other layers.
 
 ```python
 renderer.bg_layer
@@ -95,7 +95,7 @@ The tool comes with the [JetBrainsMono](https://github.com/JetBrains/JetBrainsMo
 
 ## Styles
 
-CodeVista uses the Pygments library which comes with a range of styles that can be selected with the `--style` options. The complete list can be found [here](https://pygments.org/styles/).
+PyCheese uses the Pygments library which comes with a range of styles that can be selected with the `--style` options. The complete list can be found [here](https://pygments.org/styles/).
 
 Some dark styles:
 - monokai

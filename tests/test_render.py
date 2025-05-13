@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from pygments.util import ClassNotFound
 
-from codevista import RenderConfig, StyleNotFoundError
+from pycheese import RenderConfig, StyleNotFoundError
 
 invalid_style = "invalid_style"
 available_styles = ("monokai", "solarized", "gruvbox")
@@ -48,8 +48,8 @@ def test_RenderConfig_invalid_font_path():
 #     def mock_get_style_by_name(style_name):
 #         raise ClassNotFound("Style not found")
 #
-#     monkeypatch.setattr("codevista.render.get_all_styles", mock_get_all_styles)
-#     monkeypatch.setattr("codevista.render.get_style_by_name", mock_get_style_by_name)
+#     monkeypatch.setattr("pycheese.render.get_all_styles", mock_get_all_styles)
+#     monkeypatch.setattr("pycheese.render.get_style_by_name", mock_get_style_by_name)
 #
 #     with pytest.raises(StyleNotFoundError) as exc_info:
 #         RenderConfig(style=invalid_style)
@@ -60,7 +60,7 @@ def test_RenderConfig_invalid_font_path():
 # def test_RenderConfig_text_background_color(monkeypatch):
 #     # 1: Style has a background_color
 #     monkeypatch.setattr(
-#         "codevista.render.get_style_by_name", mock_get_style_by_name_black_bg
+#         "pycheese.render.get_style_by_name", mock_get_style_by_name_black_bg
 #     )
 #
 #     config = RenderConfig(style="monokai")
@@ -68,7 +68,7 @@ def test_RenderConfig_invalid_font_path():
 #
 #     # 2: Style does not have a background_color
 #     monkeypatch.setattr(
-#         "codevista.render.get_style_by_name", mock_get_style_by_name_no_bg
+#         "pycheese.render.get_style_by_name", mock_get_style_by_name_no_bg
 #     )
 #
 #     config_no_bg = RenderConfig(style="monokai")
@@ -83,9 +83,9 @@ def test_RenderConfig_invalid_font_path():
 #             return 0, 0, 0, 0
 #         return 0, 0, 0, 0
 #
-#     monkeypatch.setattr("codevista.render.any_color_to_rgba", mock_any_color_to_rgba)
+#     monkeypatch.setattr("pycheese.render.any_color_to_rgba", mock_any_color_to_rgba)
 #     monkeypatch.setattr(
-#         "codevista.render.get_style_by_name", mock_get_style_by_name_no_bg
+#         "pycheese.render.get_style_by_name", mock_get_style_by_name_no_bg
 #     )
 #
 #     # text color defaults to black if the text background is set to white
