@@ -85,14 +85,23 @@ class RenderConfig:
             self.default_text_color = (255 - r, 255 - g, 255 - b)
 
 
-# Custom formatter to extract tokens with styles
 class TokenFormatter(Formatter):
+    """Custom formatter to extract tokens with styles.
+
+    Token types are part of Pygments and look like this:
+    `Token.Keyword.Namespace`.
+
+    default_text_color: Colors can be color names, CSS hex colors or
+    3-tuples of RGB-values (0-255).
+    """
+
     def __init__(self, default_text_color, **options):
         super().__init__(**options)
-        self.styles = {}
+        self.tokenprops = {}
         self.result = []
         self.default_text_color = default_text_color
 
+        # map (bold: Bool, italic: Bool) -> str
         style_map = {
             (False, False): "regular",
             (False, True): "italic",
@@ -100,19 +109,36 @@ class TokenFormatter(Formatter):
             (True, True): "bold_italic",
         }
 
-        style = get_style_by_name(options.get("style", "monokai"))
-        for token, style_def in style:
+        for token_type, style_def in get_style_by_name(options.get("style", "monokai")):
+            if "bold" not in style_def or "italic" not in style_def:
+                raise KeyError(f'"bold" or "italic" missing from style "{token_type}"')
             token_style = style_map[(style_def["bold"], style_def["italic"])]
-            print(token, token_style)
+
+            if not "color" in style_def:
+                raise KeyError(f'"color" missing from style {token_type}')
+
             if style_def["color"]:
-                self.styles[token] = ("#" + style_def["color"], token_style)
+                color = "#" + style_def["color"]
             else:
-                self.styles[token] = (self.default_text_color, token_style)
+                color = self.default_text_color
+
+            self.tokenprops[token_type] = {
+                "color": color,
+                "style": token_style,
+                "value": "",
+            }
 
     def format(self, tokensource, outfile):
-        for ttype, value in tokensource:
-            color = self.styles.get(ttype, self.default_text_color)[0]
-            self.result.append((value, color))
+        for token_type, value in tokensource:
+            if token_type not in self.tokenprops:
+                raise KeyError(f'No font properties found for "{token_type}"')
+
+            props = self.tokenprops[token_type]
+            props["value"] = value
+
+            # print(f"{props['value']:12} {props['color']:10} {token_type}")
+            # self.result.append((value, color))
+            self.result.append((props["value"], props["color"], props["style"]))
 
 
 def get_wrapped_lines(code_tokens, columns, rows):
@@ -121,14 +147,14 @@ def get_wrapped_lines(code_tokens, columns, rows):
     current_line = []
     current_line_text = ""
 
-    for token, color in code_tokens:
+    for token, color, style in code_tokens:
         parts = token.split("\n")
         for i, part in enumerate(parts):
             if i > 0:
                 raw_lines.append((current_line, current_line_text))
                 current_line = []
                 current_line_text = ""
-            current_line.append((part, color))
+            current_line.append((part, color, style))
             current_line_text += part
 
     if current_line:
@@ -150,7 +176,7 @@ def get_wrapped_lines(code_tokens, columns, rows):
                 new_tokens = []
                 remaining_text = wrapped_line
 
-                for token, color in tokens:
+                for token, color, style in tokens:
                     if not remaining_text:
                         break
 
@@ -160,13 +186,13 @@ def get_wrapped_lines(code_tokens, columns, rows):
                         if pos == 0:
                             # Token is at the beginning of the remaining text
                             use_len = min(len(token), len(remaining_text))
-                            new_tokens.append((token[:use_len], color))
+                            new_tokens.append((token[:use_len], color, style))
                             remaining_text = remaining_text[use_len:]
                         else:
                             # Skip characters before the token
                             remaining_text = remaining_text[pos:]
                             use_len = min(len(token), len(remaining_text))
-                            new_tokens.append((token[:use_len], color))
+                            new_tokens.append((token[:use_len], color, style))
                             remaining_text = remaining_text[use_len:]
                     else:
                         # Token might be partially in this line
@@ -177,7 +203,7 @@ def get_wrapped_lines(code_tokens, columns, rows):
                             common_prefix_len = i + 1
 
                         if common_prefix_len > 0:
-                            new_tokens.append((token[:common_prefix_len], color))
+                            new_tokens.append((token[:common_prefix_len], color, style))
                             remaining_text = remaining_text[common_prefix_len:]
 
                 wrapped_lines.append(new_tokens)
@@ -337,13 +363,12 @@ class Render:
         y = self.cfg.padding + self.cfg.bar_height
         for line in wrapped_lines:
             x = self.cfg.padding
-            for token, color in line:
-                # self.font = ImageFont.truetype(self.cfg.font_path, self.cfg.font_size)
-
-                font_style = "regular"
+            for token, color, font_style in line:
                 image_font = self.cfg.font.get_ImageFont(
                     size=self.cfg.font_size, style=font_style
                 )
+
+                print(image_font, font_style)
 
                 terminal_draw.text((x, y), token, font=image_font, fill=color)
                 x += image_font.getlength(token)
@@ -385,8 +410,8 @@ class Render:
             )
         if self.titlebar_layer is None:
             self.render_titlebar_layer()
-        if self.text_layer is None or self.code != code:
-            self.code = code
+        if self.text_layer is None or self._code != code:
+            self._code = code
             self.render_text_layer(code, style=self.cfg.style)
         self.composit_layers(blur=self.cfg.post_blur)
 
