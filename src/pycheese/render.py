@@ -1,9 +1,10 @@
 import argparse
 import os
 import textwrap
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from importlib.resources import as_file, files
 from pathlib import Path
+from typing import Optional, Union
 
 from PIL import Image, ImageColor, ImageDraw, ImageFilter, ImageFont
 from pygments import highlight
@@ -13,7 +14,7 @@ from pygments.styles import get_all_styles, get_style_by_name
 from pygments.util import ClassNotFound
 
 from pycheese.args import get_args
-from pycheese.utils.fonts import find_font
+from pycheese.utils.fonts import Font, font_paths
 from pycheese.utils.image import (
     any_color_to_rgba,
     create_gradient_background,
@@ -34,8 +35,8 @@ class StyleNotFoundError(ClassNotFound):
 
 @dataclass
 class RenderConfig:
-    font_path: str | None = None
     style: str = "monokai"
+    font_family: str = "JetBrainsMono"
     font_size: int = 20
     padding: int = 20
     margin: int = 20
@@ -51,21 +52,19 @@ class RenderConfig:
     shadow_alpha: int = 180
     text_background_color: str | None = None
     default_text_color: str | None = None
+    font: Optional[Font] = field(init=False)
 
     def __post_init__(self):
-        self.validate_font_path()
-        self.validate_style()
+        self._validate_style()  # validate theme
+        self._set_font()
 
-    def validate_font_path(self):
-        if self.font_path is None:
-            resource = files("pycheese") / "fonts" / "JetBrainsMono-Regular.ttf"
-            with as_file(resource) as font_path:
-                self.font_path = Path(resource)
+    def _set_font(self):
+        self.font = Font.from_config_file(
+            self.font_family, path=files("pycheese") / "fonts" / "font_config.toml"
+        )
 
-        if not Path(self.font_path).is_file():
-            raise FileNotFoundError(f"Font file not found: {self.font_path}")
-
-    def validate_style(self):
+    def _validate_style(self):
+        """Validate pygments style/theme."""
         try:
             style_obj = get_style_by_name(self.style)
         except ClassNotFound:
@@ -93,16 +92,26 @@ class TokenFormatter(Formatter):
         self.styles = {}
         self.result = []
         self.default_text_color = default_text_color
+
+        style_map = {
+            (False, False): "regular",
+            (False, True): "italic",
+            (True, False): "bold",
+            (True, True): "bold_italic",
+        }
+
         style = get_style_by_name(options.get("style", "monokai"))
         for token, style_def in style:
+            token_style = style_map[(style_def["bold"], style_def["italic"])]
+            print(token, token_style)
             if style_def["color"]:
-                self.styles[token] = "#" + style_def["color"]
+                self.styles[token] = ("#" + style_def["color"], token_style)
             else:
-                self.styles[token] = self.default_text_color
+                self.styles[token] = (self.default_text_color, token_style)
 
     def format(self, tokensource, outfile):
         for ttype, value in tokensource:
-            color = self.styles.get(ttype, self.default_text_color)
+            color = self.styles.get(ttype, self.default_text_color)[0]
             self.result.append((value, color))
 
 
@@ -185,11 +194,9 @@ def get_wrapped_lines(code_tokens, columns, rows):
 
 
 class Render:
-    def __init__(self, code, config: RenderConfig):
-        self.code = code
+    def __init__(self, config: RenderConfig):
         self.cfg = config
 
-        self.font = None
         self.line_height = None
         self.bar_height = 30
 
@@ -204,13 +211,16 @@ class Render:
         self.shadow_color = "black"
         self.shadow_alpha = 180
 
+        self._code = None
+
         self._init_font_properties()
         self._init_image_properties()
 
     def _init_font_properties(self):
-        self.font = ImageFont.truetype(self.cfg.font_path, self.cfg.font_size)
         self.line_height = int(self.cfg.font_size * self.cfg.line_spacing)
-        self.char_width = self.font.getlength("M")
+        self.char_width = self.cfg.font.get_ImageFont(
+            size=self.cfg.font_size
+        ).getlength("M")
 
     def _init_image_properties(self):
         self.window_width = int(
@@ -296,6 +306,9 @@ class Render:
 
     def render_text_layer(self, code, style="monokai", background_color=None):
         """Render text area according to style on top of solid background."""
+        # font_obj = Font.from_config_file(
+        #     family_name="JetBrainsMono", path=config_resource
+        # )
 
         formatter = TokenFormatter(
             default_text_color=self.cfg.default_text_color,
@@ -325,8 +338,15 @@ class Render:
         for line in wrapped_lines:
             x = self.cfg.padding
             for token, color in line:
-                terminal_draw.text((x, y), token, font=self.font, fill=color)
-                x += self.font.getlength(token)
+                # self.font = ImageFont.truetype(self.cfg.font_path, self.cfg.font_size)
+
+                font_style = "regular"
+                image_font = self.cfg.font.get_ImageFont(
+                    size=self.cfg.font_size, style=font_style
+                )
+
+                terminal_draw.text((x, y), token, font=image_font, fill=color)
+                x += image_font.getlength(token)
             y += self.line_height
 
         # create mask to round edges of terminal window
@@ -352,7 +372,7 @@ class Render:
         self.final_image.alpha_composite(self.titlebar_layer)
         self.final_image = self.final_image.filter(ImageFilter.GaussianBlur(blur))
 
-    def render(self):
+    def render(self, code):
         if self.bg_layer is None:
             self.render_background_layer()
         if self.shadow_layer is None:
@@ -365,8 +385,9 @@ class Render:
             )
         if self.titlebar_layer is None:
             self.render_titlebar_layer()
-        if self.text_layer is None:
-            self.render_text_layer(self.code, style=self.cfg.style)
+        if self.text_layer is None or self.code != code:
+            self.code = code
+            self.render_text_layer(code, style=self.cfg.style)
         self.composit_layers(blur=self.cfg.post_blur)
 
     def save_image(self, filename="rendered_code.png"):

@@ -6,8 +6,76 @@ from pathlib import Path
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlretrieve
 
+from PIL import ImageFont
+
 FONT_CONFIG = "font_config.toml"
+# FONT_DIR = files("pycheese") / "fonts"
 STYLES = ["regular", "bold", "italic", "bold_italic"]
+
+
+class Font:
+    def __init__(self, family_name, config):
+        self.family_name = family_name
+        self.font_paths = None
+        self.origin = None
+        self.font_dir = files("pycheese") / "fonts"
+        self._set_paths_and_origin(config)
+        self.ImageFonts = {}
+
+    def _set_paths_and_origin(self, config):
+        try:
+            family_config = config[self.family_name]
+        except KeyError:
+            raise ValueError(f'Font "{self.family_name}" not found in config.')
+        try:
+            self.font_paths = family_config["styles"]
+            self.origin = family_config["origin"]["url"]
+        except KeyError as e:
+            raise ValueError(f"Missing key during Font initialization: {e}")
+        self._set_full_font_paths()
+
+    def _set_full_font_paths(self):
+        with as_file(self.font_dir) as font_dir:
+            for style, filename in self.font_paths.items():
+                font_path = Path(font_dir) / filename
+                if not font_path.exists():
+                    raise FileNotFoundError(f"Font file not found: {font_path}")
+                self.font_paths[style] = font_path
+
+    def get_ImageFont(self, size: int, style: str = "regular"):
+        if len(self.ImageFonts) > 20:  # prune cache
+            self.ImageFonts = {}
+        if not (style, size) in self.ImageFonts:
+            print("generating", style, size)
+            self.ImageFonts[(style, size)] = ImageFont.truetype(
+                self.font_paths[style], size
+            )
+        return self.ImageFonts[(style, size)]
+
+    @classmethod
+    def from_config_file(cls, family_name: str, path: Path):
+        with as_file(path) as config_path:
+            with open(config_path, "rb") as f:
+                config = tomllib.load(f)
+                return cls(family_name, config)
+
+
+def foo():
+    config_resource = files("pycheese") / "fonts" / FONT_CONFIG
+    config = {
+        "JetBrainsMono": {
+            "styles": {
+                "regular": "JetBrainsMono-Regular.ttf",
+                "bold": "JetBrainsMono-Bold.ttf",
+                "italic": "JetBrainsMono-Italic.ttf",
+                "bold_italic": "JetBrainsMono-BoldItalic.ttf",
+            },
+            "origin": {
+                "url": "https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/fonts/ttf/"
+            },
+        }
+    }
+    f = Font.from_config_file(family_name="JetBrainsMono", path=config_resource)
 
 
 def join_base_and_filename(base: str, filename: str):
@@ -26,10 +94,21 @@ def join_base_and_filename(base: str, filename: str):
         return os.path.join(base, filename)
 
 
-def find_font(name):
-    config = load_font_config()
-    if name in config:
-        print(f"found font {name}")
+def font_paths(font_family: str):
+    """Returns absolute font paths for every style of the family."""
+    font_config = load_font_config()
+    if not font_family in font_config:
+        raise ValueError(f'Font family "{font_family}" not defined in "{FONT_CONFIG}".')
+
+    font_paths_dict = font_config[font_family]["styles"].copy()
+    font_resources = files("pycheese") / "fonts"
+
+    with as_file(font_resources) as font_path:
+        for style, filename in font_paths_dict.items():
+            font_file_path = Path(font_path) / filename
+            font_paths_dict[style] = font_file_path
+
+    return font_paths_dict
 
 
 def load_font_config():
@@ -76,7 +155,7 @@ def download_font(source, target):
 def update_fonts(config, font_names):
     for family in font_names:
         if family not in config:
-            raise ValueError(f"Font {family} not declared in font_config.toml")
+            raise ValueError(f'Font "{font_family}" not defined in "{FONT_CONFIG}".')
         base = config[family].get("origin", {}).get("url", None)
         if base:
             for style, filename in config[family]["styles"].items():

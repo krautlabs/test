@@ -23,14 +23,14 @@ def mock_get_style_by_name_black_bg(style_name):
     return MockStyleBlackBackground()
 
 
-def test_invalid_font_path():
-    invalid_font_path = "./invalid/font/path.ttf"
-    with pytest.raises(FileNotFoundError):
-        RenderConfig(font_path=invalid_font_path)
+# def test_invalid_font_path():
+#     invalid_font_path = "./invalid/font/path.ttf"
+#     with pytest.raises(FileNotFoundError):
+#         RenderConfig(font_path=invalid_font_path)
 
 
-def test_default_font_path():
-    RenderConfig(font_path=None)
+# def test_default_font_path():
+#     RenderConfig(font_path=None)
 
 
 def test_invalid_style(monkeypatch):

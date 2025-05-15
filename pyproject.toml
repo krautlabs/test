@@ -5,12 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "pycheese"
 dynamic = ["version"]
-description = "A short description of your package"
+description = "Generate beautiful images of code with syntax highlighting in a stylish terminal window."
+readme = "README.md"
 authors = [
     { name="Krautlabs", email="dev@krautlabs.com" }
 ]
-license = { file = "LICENSE" }
-readme = "README.md"
+# license = { file = "LICENSE" }
+# readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "pillow>=11.2.1",
@@ -21,7 +22,8 @@ dependencies = [
 dependencies = [
     "coverage>=7.8.0",
     "hatch>=1.14.1",
-    "pytest>=8.3.5"
+    "pytest>=8.3.5",
+    "ipython"
 ]
 
 [tool.hatch.version]
