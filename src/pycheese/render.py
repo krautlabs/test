@@ -1,10 +1,9 @@
-import argparse
 import os
 import textwrap
 from dataclasses import dataclass, field
 from importlib.resources import as_file, files
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 from PIL import Image, ImageColor, ImageDraw, ImageFilter, ImageFont
 from pygments import highlight
@@ -86,13 +85,13 @@ class RenderConfig:
 
 
 class TokenFormatter(Formatter):
-    """Custom formatter to extract tokens with styles.
+    """Custom Pygments formatter that extracts tokens with associated styles.
 
-    Token types are part of Pygments and look like this:
-    `Token.Keyword.Namespace`.
+    Token types are hierarchical, such as `Token.Keyword.Namespace`.
 
-    default_text_color: Colors can be color names, CSS hex colors or
-    3-tuples of RGB-values (0-255).
+    Parameters:
+        default_text_color: The default text color, which can be a color name,
+            CSS hex code, or an (R, G, B) tuple with integer values [0–255].
     """
 
     def __init__(self, default_text_color, **options):
@@ -100,6 +99,13 @@ class TokenFormatter(Formatter):
         self.tokenprops = {}
         self.result = []
         self.default_text_color = default_text_color
+
+        style_option = options.get("style", "monokai")
+
+        if isinstance(style_option, str):
+            style_cls = get_style_by_name(style_option)
+        else:
+            style_cls = style_option
 
         # map (bold: Bool, italic: Bool) -> str
         style_map = {
@@ -109,23 +115,17 @@ class TokenFormatter(Formatter):
             (True, True): "bold_italic",
         }
 
-        for token_type, style_def in get_style_by_name(options.get("style", "monokai")):
-            if "bold" not in style_def or "italic" not in style_def:
-                raise KeyError(f'"bold" or "italic" missing from style "{token_type}"')
-            token_style = style_map[(style_def["bold"], style_def["italic"])]
-
-            if not "color" in style_def:
-                raise KeyError(f'"color" missing from style {token_type}')
-
+        for token_type, style_def in style_cls:
             if style_def["color"]:
                 color = "#" + style_def["color"]
             else:
                 color = self.default_text_color
 
+            token_style = style_map[(style_def["bold"], style_def["italic"])]
+
             self.tokenprops[token_type] = {
                 "color": color,
                 "style": token_style,
-                "value": "",
             }
 
     def format(self, tokensource, outfile):
@@ -134,14 +134,30 @@ class TokenFormatter(Formatter):
                 raise KeyError(f'No font properties found for "{token_type}"')
 
             props = self.tokenprops[token_type]
-            props["value"] = value
-
-            # print(f"{props['value']:12} {props['color']:10} {token_type}")
-            # self.result.append((value, color))
-            self.result.append((props["value"], props["color"], props["style"]))
+            self.result.append((value, props["color"], props["style"]))
 
 
 def get_wrapped_lines(code_tokens, columns, rows):
+    """Processes and wraps syntax-highlighted code tokens to fit within a given
+    terminal width and height.
+
+    Each token is a tuple of (text, color, style). Tokens are split by line
+    breaks and then wrapped based on the specified column width. The output
+    ensures exactly `rows` number of lines, padding with empty lines if needed,
+    and trimming excess lines from the top if the wrapped result overflows.
+
+    Args:
+        code_tokens (List[Tuple[str, str, str]]): A list of (text, color,
+        style) tuples representing syntax-highlighted code. Text may include
+        newline characters.
+        columns (int): Maximum number of characters per line (terminal width).
+        rows (int): Maximum number of lines to display (terminal height).
+
+    Returns:
+        List[List[Tuple[str, str, str]]]: A list of lines, each line being a
+        list of (text, color, style) tuples, wrapped and padded/truncated to
+        fit the specified number of rows and columns.
+    """
     # Process tokens into lines (now with wrapping based on column limit)
     raw_lines = []
     current_line = []
