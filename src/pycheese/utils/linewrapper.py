@@ -98,40 +98,24 @@ def split_token(token, pos):
 
 
 def wrap_tokens(tokens, width=80):
-    tokens.reverse()
+    token_stack = tokens[::-1]
     single_row = []
     rows = []
     char_count = 0
 
-    while tokens:
-        token = tokens.pop()
+    while token_stack:
+        token = token_stack.pop()
 
         if char_count + token[4] > width:
             pos = width - char_count
-
-            print(f"splitting {pos=}, {char_count=}, {token[0]=}")
-            input(">>> press to continue")
-
-            head, *tail = split_token(token, pos)
-
-            # doesn't advance if head is newline that doesn't increase char_count
-            # either repreat newline finish row logic from below
-
-            print(f"got {head} & {tail}")
-
-            single_row.append(head)
-            tokens.extend(tail[::-1])
-            char_count += head[4]
-            print(f"append split head ({char_count}) {repr(head[0])}")
-            continue
+            token, *tail = split_token(token, pos)
+            token_stack.extend(tail[::-1])
 
         single_row.append(token)
         char_count += token[4]
-        print(f"append token ({char_count}) {repr(token[0])}")
 
         if token[0] == "\n":
             rows.append(single_row)
-            print("append row", [t[0] for t in single_row])
             single_row = []
             char_count = 0
 
@@ -155,8 +139,9 @@ def main():
     """
     )
     code2 = "class C:"
-    code2 = "if a > b:"
+    # code2 = "if a > b:"
 
+    print(tokenize(code2, PythonLexer()), "bw")
     # print(
     #     split_token(
     #         ("text", "959077", "regular", Token.Comment.Single, 18),
@@ -170,23 +155,31 @@ def main():
         (":", "f8f8f2", "regular", Token.Punctuation, 1),
     ]
 
-    # tokens = tokenize(code1, lexer=PythonLexer(ensurenl=False), style="monokai")
-    # print("tokens = ", [t[0] for t in tokens])
-    wt = wrap_tokens(tokens, width=6)
-    print("_", ruler(18))
-    for i, l in enumerate(wt):
-        # print(i, [repr(t[0]) for t in l])
-        print(i, "".join([str(t[0]).replace(" ", "_") for t in l]), end="")
-    # for l in wt:
-    #     print("|".join([t[0] for t in l]), end="")
+    # wt = wrap_tokens(tokens, width=6)
+    # print("_", ruler(5))
+    # for i, l in enumerate(wt):
+    #     print(i, "".join([str(t[0]).replace(" ", "_") for t in l]), end="")
 
-    # print(tokens[0])
-    # print(split_token(tokens[0], pos=2))
+    four_tokens = [
+        ("class", "66d9ef", "regular", Token.Keyword, 5),
+        (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
+        ("C", "a6e22e", "regular", Token.Name.Class, 1),
+        (":", "f8f8f2", "regular", Token.Punctuation, 1),
+    ]
+    expected = [
+        [
+            ("class", "66d9ef", "regular", Token.Keyword, 5),
+            (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
+            ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
+        ],
+        [
+            ("C", "a6e22e", "regular", Token.Name.Class, 1),
+            (":", "f8f8f2", "regular", Token.Punctuation, 1),
+        ],
+    ]
 
-    # print()
-    # single_token = ("import", "ff4689", "regular", Token.Keyword.Namespace, 6)
-    # print(split_token(single_token, 0))
-    # print(wrap_tokens([single_token], width=10))
+    result = wrap_tokens(four_tokens, width=6)
+    print(result)
 
 
 if __name__ == "__main__":
