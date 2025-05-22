@@ -3,16 +3,16 @@ import textwrap
 import pytest
 from pygments.token import Token
 
-from pycheese.utils.linewrapper import *
+from pycheese.utils.linewrap import *
 
-newline_token = ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0)
-single_token = ("import", "ff4689", "regular", Token.Keyword.Namespace, 6)
+newline_token = ("\n", "#f8f8f2", "regular", Token.Text.Whitespace, 0)
+single_token = ("import", "#ff4689", "regular", Token.Keyword.Namespace, 6)
 four_tokens = [
-    ("class", "66d9ef", "regular", Token.Keyword, 5),
-    (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
-    ("C", "a6e22e", "regular", Token.Name.Class, 1),
-    (":", "f8f8f2", "regular", Token.Punctuation, 1),
-    ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
+    ("class", "#66d9ef", "regular", Token.Keyword, 5),
+    (" ", "#f8f8f2", "regular", Token.Text.Whitespace, 1),
+    ("C", "#a6e22e", "regular", Token.Name.Class, 1),
+    (":", "#f8f8f2", "regular", Token.Punctuation, 1),
+    ("\n", "#f8f8f2", "regular", Token.Text.Whitespace, 0),
 ]
 
 
@@ -38,13 +38,12 @@ def test_split_zero(pos):
 
 @pytest.mark.parametrize("pos", [1])
 def test_split_one(pos):
-    token = ("import", "ff4689", "regular", Token.Keyword.Namespace, 6)
     expected = [
-        ("i", "ff4689", "regular", Token.Keyword.Namespace, 1),
+        ("i", "#ff4689", "regular", Token.Keyword.Namespace, 1),
         newline_token,
-        ("mport", "ff4689", "regular", Token.Keyword.Namespace, 5),
+        ("mport", "#ff4689", "regular", Token.Keyword.Namespace, 5),
     ]
-    result = split_token(token, pos=pos)
+    result = split_token(single_token, pos=pos)
     assert result == expected
 
 
@@ -56,15 +55,15 @@ def test_no_wrap_single_short_token():
 
 def test_wrap_single_long_token():
     tokens = [
-        ("# a_longer_comment", "959077", "regular", Token.Comment.Single, 18),
+        ("# a_longer_comment", "#959077", "regular", Token.Comment.Single, 18),
     ]
     expected = [
         [
-            ("# a_longer", "959077", "regular", Token.Comment.Single, 10),
-            ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
+            ("# a_longer", "#959077", "regular", Token.Comment.Single, 10),
+            ("\n", "#f8f8f2", "regular", Token.Text.Whitespace, 0),
         ],
         [
-            ("_comment", "959077", "regular", Token.Comment.Single, 8),
+            ("_comment", "#959077", "regular", Token.Comment.Single, 8),
         ],
     ]
     result = wrap_tokens(tokens, width=10)
@@ -74,16 +73,15 @@ def test_wrap_single_long_token():
 def test_wrap_long_line_at_last_character_of_token():
     expected = [
         [
-            ("class", "66d9ef", "regular", Token.Keyword, 5),
-            ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
+            ("class", "#66d9ef", "regular", Token.Keyword, 5),
+            ("\n", "#f8f8f2", "regular", Token.Text.Whitespace, 0),
         ],
         [
-            ("C", "a6e22e", "regular", Token.Name.Class, 1),
-            (":", "f8f8f2", "regular", Token.Punctuation, 1),
-            ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
+            ("C", "#a6e22e", "regular", Token.Name.Class, 1),
+            (":", "#f8f8f2", "regular", Token.Punctuation, 1),
+            ("\n", "#f8f8f2", "regular", Token.Text.Whitespace, 0),
         ],
     ]
-
     result = wrap_tokens(four_tokens, width=5)
     assert result == expected
 
@@ -91,17 +89,16 @@ def test_wrap_long_line_at_last_character_of_token():
 def test_wrap_long_line_at_space_after_token():
     expected = [
         [
-            ("class", "66d9ef", "regular", Token.Keyword, 5),
-            (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
-            ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
+            ("class", "#66d9ef", "regular", Token.Keyword, 5),
+            (" ", "#f8f8f2", "regular", Token.Text.Whitespace, 1),
+            ("\n", "#f8f8f2", "regular", Token.Text.Whitespace, 0),
         ],
         [
-            ("C", "a6e22e", "regular", Token.Name.Class, 1),
-            (":", "f8f8f2", "regular", Token.Punctuation, 1),
-            ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
+            ("C", "#a6e22e", "regular", Token.Name.Class, 1),
+            (":", "#f8f8f2", "regular", Token.Punctuation, 1),
+            ("\n", "#f8f8f2", "regular", Token.Text.Whitespace, 0),
         ],
     ]
-
     result = wrap_tokens(four_tokens, width=6)
     assert result == expected
 
@@ -109,13 +106,12 @@ def test_wrap_long_line_at_space_after_token():
 def test_wrap_long_line_at_existing_newline():
     expected = [
         [
-            ("class", "66d9ef", "regular", Token.Keyword, 5),
-            (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
-            ("C", "a6e22e", "regular", Token.Name.Class, 1),
-            (":", "f8f8f2", "regular", Token.Punctuation, 1),
-            ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
+            ("class", "#66d9ef", "regular", Token.Keyword, 5),
+            (" ", "#f8f8f2", "regular", Token.Text.Whitespace, 1),
+            ("C", "#a6e22e", "regular", Token.Name.Class, 1),
+            (":", "#f8f8f2", "regular", Token.Punctuation, 1),
+            ("\n", "#f8f8f2", "regular", Token.Text.Whitespace, 0),
         ],
     ]
-
     result = wrap_tokens(four_tokens, width=9)
     assert result == expected

@@ -19,6 +19,7 @@ from pycheese.utils.image import (
     create_gradient_background,
     create_uniform_background,
 )
+from pycheese.utils.linewrap import tokenize, wrap_tokens
 
 
 class StyleNotFoundError(ClassNotFound):
@@ -352,17 +353,20 @@ class Render:
         #     family_name="JetBrainsMono", path=config_resource
         # )
 
-        formatter = TokenFormatter(
-            default_text_color=self.cfg.default_text_color,
-            style=style,
-        )
-        highlight(code, PythonLexer(), formatter)
+        # formatter = TokenFormatter(
+        #     default_text_color=self.cfg.default_text_color,
+        #     style=style,
+        # )
+        # highlight(code, PythonLexer(), formatter)
+        #
+        # wrapped_lines = get_wrapped_lines(
+        #     formatter.result,
+        #     self.cfg.columns,
+        #     self.cfg.rows,
+        # )
 
-        wrapped_lines = get_wrapped_lines(
-            formatter.result,
-            self.cfg.columns,
-            self.cfg.rows,
-        )
+        tokens = tokenize(code, PythonLexer(), style)
+        wrapped_lines = wrap_tokens(tokens, width=self.cfg.columns)
 
         if background_color is None:
             background_color = self.cfg.text_background_color
@@ -379,7 +383,7 @@ class Render:
         y = self.cfg.padding + self.cfg.bar_height
         for line in wrapped_lines:
             x = self.cfg.padding
-            for token, color, font_style in line:
+            for token, color, font_style, *_ in line:
                 image_font = self.cfg.font.get_ImageFont(
                     size=self.cfg.font_size, style=font_style
                 )
@@ -457,22 +461,20 @@ def main():
     config = RenderConfig(
         columns=args.columns,
         rows=args.rows,
-        font_path=args.font,
+        # font_path=args.font,
         style=args.style,
     )
+
     renderer = Render(
-        code=code,
         config=config,
     )
 
-    # individual layers can be manually rendered
-    # renderer.render_background_layer(first_color=(0, 0, 0, 0))
-
     # Monokai-style purple gradient (dark to light purple)
-    end_color = (93, 80, 124)
-    start_color = (151, 125, 201)
+    # end_color = (93, 80, 124)
+    # start_color = (151, 125, 201)
     # renderer.render_background_layer(first_color=start_color, second_color=end_color)
-    renderer.render()
+
+    renderer.render(code=code)
     renderer.save_image(args.output)
 
     # import numpy as np
