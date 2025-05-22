@@ -62,9 +62,7 @@ def split_token(token, pos):
     the original token followed by a newline token.
 
     Spaces that end up at the beginning of the new line (i.e. beginning of last
-    token) will be moved to the end of the first token. This might create a
-    token that exceeds the specified length. At this point users would need to
-    strip spaces manually at line ends if that behaviour is not desired.
+    token) will be removed.
     """
     max_pos = max(0, token[4] - 1)
     if pos < 0 or max_pos < pos:
@@ -81,18 +79,21 @@ def split_token(token, pos):
     head_printable_len = len(head_value.rstrip("\r\n"))
     tail_printable_len = len(tail_value.rstrip("\r\n"))
 
-    # add leading spaces of tail token to end of head token
+    # remove leading spaces from tail token
     match = re.match(r"\s+", tail_value)
     leading_spaces = match.group() if match else ""
     if leading_spaces:
-        head_value += leading_spaces
+        # head_value += leading_spaces
+        # head_printable_len += len(leading_spaces)
         tail_value = tail_value[len(leading_spaces) :]
+        tail_printable_len -= len(leading_spaces)
 
     out_tokens = [
         (head_value, *token[1:4], head_printable_len),
         newline_token,
         (tail_value, *token[1:4], tail_printable_len),
     ]
+
     # remove tokens with empty values
     return [t for t in out_tokens if t[0]]
 
@@ -138,48 +139,40 @@ def main():
             return True
     """
     )
-    code2 = "class C:"
+    code2 = "class C:\n    pass"
     # code2 = "if a > b:"
 
-    print(tokenize(code2, PythonLexer()), "bw")
+    # from pygments.styles import get_all_styles
+    # List and print all available styles
+    # styles = list(get_all_styles())
+    # for style in styles:
+    #     print(style, tokenize(code2, PythonLexer(), style))
+
+    print(tokens := tokenize(code2, PythonLexer(), "monokai"))
     # print(
     #     split_token(
     #         ("text", "959077", "regular", Token.Comment.Single, 18),
     #         pos=0,
     #     )
     # )
-    tokens = [
-        ("class", "66d9ef", "regular", Token.Keyword, 5),
-        (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
-        ("C", "a6e22e", "regular", Token.Name.Class, 1),
-        (":", "f8f8f2", "regular", Token.Punctuation, 1),
-    ]
 
-    # wt = wrap_tokens(tokens, width=6)
-    # print("_", ruler(5))
-    # for i, l in enumerate(wt):
-    #     print(i, "".join([str(t[0]).replace(" ", "_") for t in l]), end="")
+    # four_tokens = [
+    #     ("class", "66d9ef", "regular", Token.Keyword, 5),
+    #     (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
+    #     ("C", "a6e22e", "regular", Token.Name.Class, 1),
+    #     (":", "f8f8f2", "regular", Token.Punctuation, 1),
+    # ]
 
-    four_tokens = [
-        ("class", "66d9ef", "regular", Token.Keyword, 5),
-        (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
-        ("C", "a6e22e", "regular", Token.Name.Class, 1),
-        (":", "f8f8f2", "regular", Token.Punctuation, 1),
-    ]
-    expected = [
-        [
-            ("class", "66d9ef", "regular", Token.Keyword, 5),
-            (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
-            ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
-        ],
-        [
-            ("C", "a6e22e", "regular", Token.Name.Class, 1),
-            (":", "f8f8f2", "regular", Token.Punctuation, 1),
-        ],
-    ]
+    width = 7
+    # print(wrap_tokens(four_tokens, width=6))
+    print(wt := wrap_tokens(tokens, width=width))
 
-    result = wrap_tokens(four_tokens, width=6)
-    print(result)
+    print()
+    # wt = wrap_tokens(tokenize(code1, PythonLexer(), "bw"), width=18)
+    print("_", ruler(width))
+    for i, l in enumerate(wt):
+        print(i, "".join([str(t[0]).replace(" ", "_") for t in l]), end="")
+    print()
 
 
 if __name__ == "__main__":
