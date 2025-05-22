@@ -10,8 +10,15 @@ readme = "README.md"
 authors = [
     { name="Krautlabs", email="dev@krautlabs.com" }
 ]
-# license = { file = "LICENSE" }
-# readme = "README.md"
+license = { file = "LICENSE" }
+classifiers = [
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Utilities",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent"
+]
 requires-python = ">=3.13"
 dependencies = [
     "pillow>=11.2.1",
