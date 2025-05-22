@@ -18,10 +18,10 @@ four_tokens = [
 
 def test_tokenize():
     expected_monokai = [
-        ("import", ("#ff4689",), "regular", Token.Keyword.Namespace, 6),
-        (" ", ("#f8f8f2",), "regular", Token.Text.Whitespace, 1),
-        ("os", ("#f8f8f2",), "regular", Token.Name.Namespace, 2),
-        ("\n", ("#f8f8f2",), "regular", Token.Text.Whitespace, 0),
+        ("import", "#ff4689", "regular", Token.Keyword.Namespace, 6),
+        (" ", "#f8f8f2", "regular", Token.Text.Whitespace, 1),
+        ("os", "#f8f8f2", "regular", Token.Name.Namespace, 2),
+        ("\n", "#f8f8f2", "regular", Token.Text.Whitespace, 0),
     ]
     expected_bw = [
         ("import", "#000000", "bold", Token.Keyword.Namespace, 6),

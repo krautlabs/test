@@ -198,23 +198,13 @@ class Render:
 
     def render_text_layer(self, code, style="monokai", background_color=None):
         """Render text area according to style on top of solid background."""
-        # font_obj = Font.from_config_file(
-        #     family_name="JetBrainsMono", path=config_resource
-        # )
 
-        # formatter = TokenFormatter(
-        #     default_text_color=self.cfg.default_text_color,
-        #     style=style,
-        # )
-        # highlight(code, PythonLexer(), formatter)
-        #
-        # wrapped_lines = get_wrapped_lines(
-        #     formatter.result,
-        #     self.cfg.columns,
-        #     self.cfg.rows,
-        # )
-
-        tokens = tokenize(code, PythonLexer(), style)
+        tokens = tokenize(
+            code,
+            lexer=PythonLexer(),
+            style=style,
+            default_text_color=self.cfg.default_text_color,
+        )
         wrapped_lines = wrap_tokens(tokens, width=self.cfg.columns)
 
         if background_color is None:
@@ -325,32 +315,6 @@ def main():
 
     renderer.render(code=code)
     renderer.save_image(args.output)
-
-    # import numpy as np
-    #
-    # final_frames = 10
-    # for i, j in enumerate(np.cumsum(np.random.choice([3, 5, 7], size=200))):
-    #     if j > len(code):
-    #         j = len(code)
-    #         final_frames -= 1
-    #     filename = f"gif/out{i:03d}.png"
-    #     renderer.render_text_layer(code[:j])
-    #     renderer.composit_layers(blur=0.5)
-    #     renderer.save_image(filename)
-    #     if final_frames < 1:
-    #         break
-    # magick -delay 20 -loop 0 gif/*.png output.gif
-
-    # Step 1: Create a palette (for good color quantization)
-    # ffmpeg -y -i gif/out%02d.png -vf palettegen palette.png
-
-    # Step 2: Use the palette to make the GIF
-    # ffmpeg -i gif/out%03d.png -i palette.png -lavfi "fps=10 [x]; [x][1:v] paletteuse" output.gif
-
-    # ffmpeg -framerate 1 -i gif/out%02d.png -c:v libx264 -r 60 -pix_fmt yuv420p output.mp4
-
-
-###############################################################################
 
 
 if __name__ == "__main__":

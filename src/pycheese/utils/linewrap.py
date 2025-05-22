@@ -43,7 +43,7 @@ def tokenize(code, lexer, style="default", default_text_color="#000000"):
         if style_attrs["color"] is None:
             color = default_text_color
         else:
-            color = ("#" + style_attrs["color"],)  # test if valid color
+            color = "#" + style_attrs["color"]  # test if valid color
         l.append(
             (
                 tok_val,
