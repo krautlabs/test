@@ -13,7 +13,7 @@ from pygments.styles import get_all_styles, get_style_by_name
 from pygments.util import ClassNotFound
 
 from pycheese.args import get_args
-from pycheese.utils.fonts import Font, font_paths
+from pycheese.utils.fonts import Font, font_paths, get_font_config_resource
 from pycheese.utils.image import (
     any_color_to_rgba,
     create_gradient_background,
@@ -60,7 +60,8 @@ class RenderConfig:
 
     def _set_font(self):
         self.font = Font.from_config_file(
-            self.font_family, path=files("pycheese") / "fonts" / "font_config.toml"
+            self.font_family,
+            path=get_font_config_resource(),
         )
 
     def _validate_style(self):

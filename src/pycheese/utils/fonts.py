@@ -8,9 +8,9 @@ from urllib.request import urlretrieve
 
 from PIL import ImageFont
 
-FONT_CONFIG = "font_config.toml"
-# FONT_DIR = files("pycheese") / "fonts"
-STYLES = ["regular", "bold", "italic", "bold_italic"]
+
+def get_font_config_resource():
+    return files("pycheese") / "fonts" / "font_config.toml"
 
 
 class Font:
@@ -60,24 +60,6 @@ class Font:
                 return cls(family_name, config)
 
 
-def foo():
-    config_resource = files("pycheese") / "fonts" / FONT_CONFIG
-    config = {
-        "JetBrainsMono": {
-            "styles": {
-                "regular": "JetBrainsMono-Regular.ttf",
-                "bold": "JetBrainsMono-Bold.ttf",
-                "italic": "JetBrainsMono-Italic.ttf",
-                "bold_italic": "JetBrainsMono-BoldItalic.ttf",
-            },
-            "origin": {
-                "url": "https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/fonts/ttf/"
-            },
-        }
-    }
-    f = Font.from_config_file(family_name="JetBrainsMono", path=config_resource)
-
-
 def join_base_and_filename(base: str, filename: str):
     """Join a path/URL with a filename.
 
@@ -98,7 +80,7 @@ def font_paths(font_family: str):
     """Returns absolute font paths for every style of the family."""
     font_config = load_font_config()
     if not font_family in font_config:
-        raise ValueError(f'Font family "{font_family}" not defined in "{FONT_CONFIG}".')
+        raise ValueError(f'Font family "{font_family}" not defined in font config.')
 
     font_paths_dict = font_config[font_family]["styles"].copy()
     font_resources = files("pycheese") / "fonts"
@@ -112,8 +94,7 @@ def font_paths(font_family: str):
 
 
 def load_font_config():
-    config_resource = files("pycheese") / "fonts" / FONT_CONFIG
-    with as_file(config_resource) as config_path:
+    with as_file(get_font_config_resource()) as config_path:
         with open(config_path, "rb") as f:
             return tomllib.load(f)
 
@@ -155,7 +136,7 @@ def download_font(source, target):
 def update_fonts(config, font_names):
     for family in font_names:
         if family not in config:
-            raise ValueError(f'Font "{font_family}" not defined in "{FONT_CONFIG}".')
+            raise ValueError(f'Font "{font_family}" not defined in font config.')
         base = config[family].get("origin", {}).get("url", None)
         if base:
             for style, filename in config[family]["styles"].items():
