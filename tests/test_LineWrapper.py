@@ -7,11 +7,12 @@ from pycheese.utils.linewrapper import *
 
 newline_token = ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0)
 single_token = ("import", "ff4689", "regular", Token.Keyword.Namespace, 6)
-row_of_tokens = [
+four_tokens = [
     ("class", "66d9ef", "regular", Token.Keyword, 5),
     (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
     ("C", "a6e22e", "regular", Token.Name.Class, 1),
     (":", "f8f8f2", "regular", Token.Punctuation, 1),
+    ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
 ]
 
 
@@ -70,96 +71,51 @@ def test_wrap_single_long_token():
     assert result == expected
 
 
-def test_wrap_long_line_at_token():
+def test_wrap_long_line_at_last_character_of_token():
     expected = [
         [
             ("class", "66d9ef", "regular", Token.Keyword, 5),
-            (" ", "f8f8f2", "regular", Token.Text.Whitespace, 0),
             ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
         ],
         [
             ("C", "a6e22e", "regular", Token.Name.Class, 1),
             (":", "f8f8f2", "regular", Token.Punctuation, 1),
+            ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
         ],
     ]
 
-    result = wrap_tokens(row_of_tokens, width=5)
+    result = wrap_tokens(four_tokens, width=5)
     assert result == expected
 
 
-# def test_wrap_long_line_at_space_after_token():
-#     tokens = [
-#         ("class", "66d9ef", "regular", Token.Keyword, 5),
-#         (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
-#         ("C", "a6e22e", "regular", Token.Name.Class, 1),
-#         (":", "f8f8f2", "regular", Token.Punctuation, 1),
-#     ]
-#     expected = [
-#         [
-#             ("class", "66d9ef", "regular", Token.Keyword, 5),
-#             (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
-#             ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
-#         ],
-#         [
-#             ("C", "a6e22e", "regular", Token.Name.Class, 1),
-#             (":", "f8f8f2", "regular", Token.Punctuation, 1),
-#         ],
-#     ]
-#     result = wrap_tokens(tokens, width=6)
-#     assert result == expected
-#
+def test_wrap_long_line_at_space_after_token():
+    expected = [
+        [
+            ("class", "66d9ef", "regular", Token.Keyword, 5),
+            (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
+            ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
+        ],
+        [
+            ("C", "a6e22e", "regular", Token.Name.Class, 1),
+            (":", "f8f8f2", "regular", Token.Punctuation, 1),
+            ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
+        ],
+    ]
 
-# def test_wrap_long_line_multiple_tokens():
-#     code_tokens = [[("abc", "red", "bold"), ("defgh", "blue", "italic")]]
-#     columns = 5
-#     rows = 3
-#     result = get_wrapped_lines(code_tokens[0], columns, rows)
-#     expected = [
-#         [("abc", "red", "bold"), ("de", "blue", "italic")],
-#         [("fgh", "blue", "italic")],
-#         [],
-#     ]
-#     assert result == expected
-#
+    result = wrap_tokens(four_tokens, width=6)
+    assert result == expected
 
 
-# def test_newline_splitting():
-#     code_tokens = [
-#         ("abc\n12345", "red", "bold"),
-#     ]
-#     columns = 10
-#     rows = 3
-#     result = get_wrapped_lines(code_tokens, columns, rows)
-#     expected = [
-#         [("abc", "red", "bold")],
-#         [("12345", "red", "bold")],
-#         [],
-#     ]
-#     assert result == expected
-#
+def test_wrap_long_line_at_existing_newline():
+    expected = [
+        [
+            ("class", "66d9ef", "regular", Token.Keyword, 5),
+            (" ", "f8f8f2", "regular", Token.Text.Whitespace, 1),
+            ("C", "a6e22e", "regular", Token.Name.Class, 1),
+            (":", "f8f8f2", "regular", Token.Punctuation, 1),
+            ("\n", "f8f8f2", "regular", Token.Text.Whitespace, 0),
+        ],
+    ]
 
-# def test_rows_limit_trimming():
-#     code_tokens = [
-#         ("abcdefghijklmnopqrstuvwxyz", "red", "bold"),
-#     ]
-#     columns = 5
-#     rows = 3
-#     result = get_wrapped_lines(code_tokens, columns, rows)
-#     # Should keep last 3 wrapped lines only
-#     expected = [
-#         [("fghij", "red", "bold")],
-#         [("klmno", "red", "bold")],
-#         [("pqrst", "red", "bold")],
-#     ]
-#     assert result == expected
-
-
-# def test_fill_empty_lines():
-#     code_tokens = [("abc", "red", "bold")]
-#     columns = 10
-#     rows = 5
-#     result = get_wrapped_lines(code_tokens, columns, rows)
-#     assert len(result) == 5
-#     assert result[0] == [("abc", "red", "bold")]
-#     for line in result[1:]:
-#         assert line == []
+    result = wrap_tokens(four_tokens, width=9)
+    assert result == expected
