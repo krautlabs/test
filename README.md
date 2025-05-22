@@ -113,6 +113,15 @@ Some light styles:
 - murphy
 
 
+## Line Wrapping
+
+The line wrapping can be independently applied using the `linewrap.py` script.
+
+```bash
+hatch run python src/pycheese/utils/linewrap.py --columns 20 tests/sample_code.py
+```
+
+
 ## Alternatives
 
 - [Raycast](https://www.ray.so/)

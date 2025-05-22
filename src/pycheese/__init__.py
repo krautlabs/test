@@ -1,10 +1,9 @@
-from .render import Render, RenderConfig, StyleNotFoundError, TokenFormatter
+from .render import Render, RenderConfig, StyleNotFoundError
 
 __all__ = [
     "Render",
     "RenderConfig",
     "StyleNotFoundError",
-    "TokenFormatter",
 ]
 
 __version__ = "0.1.1"

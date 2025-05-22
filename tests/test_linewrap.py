@@ -16,6 +16,26 @@ four_tokens = [
 ]
 
 
+def test_tokenize():
+    expected_monokai = [
+        ("import", ("#ff4689",), "regular", Token.Keyword.Namespace, 6),
+        (" ", ("#f8f8f2",), "regular", Token.Text.Whitespace, 1),
+        ("os", ("#f8f8f2",), "regular", Token.Name.Namespace, 2),
+        ("\n", ("#f8f8f2",), "regular", Token.Text.Whitespace, 0),
+    ]
+    expected_bw = [
+        ("import", "#000000", "bold", Token.Keyword.Namespace, 6),
+        (" ", "#000000", "regular", Token.Text.Whitespace, 1),
+        ("os", "#000000", "bold", Token.Name.Namespace, 2),
+        ("\n", "#000000", "regular", Token.Text.Whitespace, 0),
+    ]
+    code = """import os"""
+    result_monokai = tokenize(code, PythonLexer(), "monokai")
+    result_bw = tokenize(code, PythonLexer(), "bw")
+    assert result_bw == expected_bw
+    assert result_monokai == expected_monokai
+
+
 @pytest.mark.parametrize("pos", [-1])
 def test_split_negative(pos):
     with pytest.raises(ValueError):
