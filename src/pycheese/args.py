@@ -6,7 +6,7 @@ def get_args():
         description="Render Python code into a styled terminal PNG."
     )
     parser.add_argument(
-        "source_file",
+        "--file",
         type=str,
         help="Path to the .py source file",
     )

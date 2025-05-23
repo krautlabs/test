@@ -2,7 +2,7 @@
 
 **PyCheese** is a Python-based tool for generating beautiful, high-quality images of code with syntax highlighting, rendered in a macOS-style terminal window. Built for automation and easy customization, it can be easily integrated into scripts or pipelines.
 
-![example-image](docs/rendered_terminal.png)
+![example-image](src/pycheese/docs/rendered_terminal.png)
 
 ---
 
@@ -29,12 +29,12 @@ pip install pycheese
 Render the code in `test.py` in a default 80x24 window. By default, the window scrolls with the code and only the last 24 rows will be shown if the code does not fit into the window.
 
 ```bash
-python pycheese.py test.py
+pycheese tests/sample_code.py
 ```
 
 Use the `--columns` and `--rows` options to extend the window.
 ```bash
-python pycheese.py test.py --rows 40
+pycheese --columns 45 tests/sample_code.py
 ```
 
 ## Programmatic Usage

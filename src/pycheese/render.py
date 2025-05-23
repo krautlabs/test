@@ -274,14 +274,14 @@ def main():
     #     raise FileNotFoundError("Font file not found. Provide a valid TTF file.")
     #     print(list(get_all_styles()))
 
-    if not Path(args.source_file).exists() or not args.source_file.endswith(".py"):
-        raise FileNotFoundError("The source file must exist and be a .py file.")
+    if args.file:
+        with open(args.file, "r", encoding="utf-8") as f:
+            code = f.read()
+    else:
+        code = sys.stdin.read()
 
     # if not Path(args.font).exists():
     #     raise FileNotFoundError("Font file not found. Provide a valid TTF file.")
-
-    with open(args.source_file, "r", encoding="utf-8") as f:
-        code = f.read()
 
     config = RenderConfig(
         columns=args.columns,
