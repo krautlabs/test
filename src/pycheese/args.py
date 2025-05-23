@@ -1,7 +1,7 @@
 import argparse
 
 
-def get_args():
+def get_argparser():
     parser = argparse.ArgumentParser(
         description="Render Python code into a styled terminal PNG."
     )
@@ -40,4 +40,4 @@ def get_args():
         default=80,
         help="Number of columns in the terminal",
     )
-    return parser.parse_args()
+    return parser

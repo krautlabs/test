@@ -1,4 +1,5 @@
 import os
+import sys
 import textwrap
 from dataclasses import dataclass, field
 from importlib.resources import as_file, files
@@ -12,7 +13,7 @@ from pygments.lexers import PythonLexer
 from pygments.styles import get_all_styles, get_style_by_name
 from pygments.util import ClassNotFound
 
-from pycheese.args import get_args
+from pycheese.args import get_argparser
 from pycheese.utils.fonts import Font, font_paths, get_font_config_resource
 from pycheese.utils.image import (
     any_color_to_rgba,
@@ -266,7 +267,8 @@ class Render:
 
 
 def main():
-    args = get_args()
+    parser = get_argparser()
+    args = parser.parse_args()
 
     # if not Path(args.font).exists():
     #     raise FileNotFoundError("Font file not found. Provide a valid TTF file.")
@@ -276,7 +278,11 @@ def main():
         with open(args.file, "r", encoding="utf-8") as f:
             code = f.read()
     else:
-        code = sys.stdin.read()
+        if sys.stdin.isatty():
+            parser.print_help()
+            sys.exit(1)
+        else:
+            code = sys.stdin.read()
 
     # if not Path(args.font).exists():
     #     raise FileNotFoundError("Font file not found. Provide a valid TTF file.")

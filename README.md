@@ -34,12 +34,12 @@ pip install pycheese
 Render the code in `test.py` in a default 80x24 window. By default, the window scrolls with the code and only the last 24 rows will be shown if the code does not fit into the window.
 
 ```bash
-pycheese tests/sample_code.py
+pycheese --file tests/sample_code.py
 ```
 
 Use the `--columns` and `--rows` options to extend the window.
 ```bash
-pycheese --columns 45 tests/sample_code.py
+pycheese --columns 45 --file tests/sample_code.py
 ```
 
 ## Docker
