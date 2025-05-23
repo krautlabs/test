@@ -6,16 +6,23 @@
 hatch run pytest
 ```
 
+## Commit Latest Changes
+
+```bash
+git add -u
+git commit
+```
+
 ## Increment Version
 
 Run the following commands to increment the package's `__version__` number in the `__init__.py` file.
 
 ```bash
-VERSION=0.2.1
+VERSION=0.2.6
 hatch version $VERSION
 
 # commit the updated init file
-git add -u
+git add src/pycheese/__init__.py  
 git commit -m"bump version to $VERSION"
 ```
 
