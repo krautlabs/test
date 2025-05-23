@@ -42,6 +42,27 @@ Use the `--columns` and `--rows` options to extend the window.
 pycheese --columns 45 tests/sample_code.py
 ```
 
+## Docker
+
+It's also possible to run the application in an isolated container. First, the Docker image needs to be built.
+
+```bash
+docker build -t pycheese-app .
+```
+
+Then the application can be run easily from within the container.
+
+```bash
+docker run --rm pycheese-app --help
+docker run -v $(pwd):/data --rm pycheese-app --columns 45 --file tests/sample_code.py --output out5.png --font JetBrainsMono
+```
+
+Mount the local directory as follows to process files.
+
+```bash
+docker run -v $(pwd):/data --rm pycheese-app --columns 45 --file code.py --output out.png
+```
+
 ## Programmatic Usage
 
 ```python
