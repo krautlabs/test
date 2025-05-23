@@ -63,6 +63,8 @@ class RenderConfig:
             self.font_family,
             path=get_font_config_resource(),
         )
+        self.line_height = int(self.font_size * self.line_spacing)
+        self.char_width = self.font.get_ImageFont(size=self.font_size).getlength("M")
 
     def _validate_style(self):
         """Validate pygments style/theme."""
@@ -90,7 +92,7 @@ class Render:
     def __init__(self, config: RenderConfig):
         self.cfg = config
 
-        self.line_height = None
+        # self.line_height = None
         self.bar_height = 30
 
         self.bg_layer = None
@@ -99,28 +101,17 @@ class Render:
         self.titlebar_layer = None
         self.final_image = None
 
-        self.shadow_offset = 10
-        self.shadow_blur = 6
-        self.shadow_color = "black"
-        self.shadow_alpha = 180
-
         self._code = None
 
-        self._init_font_properties()
+        # self._init_font_properties()
         self._init_image_properties()
-
-    def _init_font_properties(self):
-        self.line_height = int(self.cfg.font_size * self.cfg.line_spacing)
-        self.char_width = self.cfg.font.get_ImageFont(
-            size=self.cfg.font_size
-        ).getlength("M")
 
     def _init_image_properties(self):
         self.window_width = int(
-            self.cfg.columns * self.char_width + 2 * self.cfg.padding
+            self.cfg.columns * self.cfg.char_width + 2 * self.cfg.padding
         )
         self.window_height = int(
-            self.cfg.rows * self.line_height + 2 * self.cfg.padding + 30
+            self.cfg.rows * self.cfg.line_height + 2 * self.cfg.padding + 30
         )
         self.img_width = int(self.window_width + 2 * self.cfg.margin)
         self.img_height = int(self.window_height + 2 * self.cfg.margin)
@@ -171,9 +162,6 @@ class Render:
 
     def render_titlebar_layer(self, color=(30, 30, 30)):
         """Render a stylized terminal window title bar resembling macOS."""
-        # assert (
-        #     self.shadow_offset <= self.margin
-        # ), f"{self.shadow_offset=}, {self.margin=}."
 
         terminal = Image.new("RGBA", (self.window_width, self.bar_height), (0, 0, 0, 0))
         terminal_draw = ImageDraw.Draw(terminal)
@@ -227,12 +215,9 @@ class Render:
                 image_font = self.cfg.font.get_ImageFont(
                     size=self.cfg.font_size, style=font_style
                 )
-
-                print(image_font, font_style)
-
                 terminal_draw.text((x, y), token, font=image_font, fill=color)
                 x += image_font.getlength(token)
-            y += self.line_height
+            y += self.cfg.line_height
 
         # create mask to round edges of terminal window
         mask = Image.new("L", (self.window_width, self.window_height), 0)
