@@ -6,3 +6,4 @@ bold_italic = "JetBrainsMono-BoldItalic.ttf"
 
 [JetBrainsMono.origin]
 url = "https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/fonts/ttf/"
+type = "url"
