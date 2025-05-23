@@ -23,6 +23,7 @@ requires-python = ">=3.13"
 dependencies = [
     "pillow>=11.2.1",
     "pygments>=2.19.1",
+    "tomli-w>=1.2.0",
 ]
 
 [tool.hatch.envs.default]
@@ -41,3 +42,4 @@ Homepage = "https://github.com/krautlabs/pycheese"
 
 [project.scripts]
 pycheese= "pycheese.render:main"
+fonts-tool= "pycheese.utils.fonts:main"
