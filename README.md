@@ -1,5 +1,9 @@
 # PyCheese
 
+![GitHub release](https://img.shields.io/github/v/release/krautlabs/test?style=flat-square)
+![PyPI version](https://img.shields.io/pypi/v/pycheese?style=flat-square)
+![License](https://img.shields.io/github/license/krautlabs/test?style=flat-square)
+
 **PyCheese** is a Python-based tool for generating beautiful, high-quality images of code with syntax highlighting, rendered in a macOS-style terminal window. Built for automation and easy customization, it can be easily integrated into scripts or pipelines.
 
 ![example-image](docs/rendered_terminal.png)
