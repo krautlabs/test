@@ -92,7 +92,6 @@ class Render:
     def __init__(self, config: RenderConfig):
         self.cfg = config
 
-        # self.line_height = None
         self.bar_height = 30
 
         self.bg_layer = None
@@ -103,7 +102,6 @@ class Render:
 
         self._code = None
 
-        # self._init_font_properties()
         self._init_image_properties()
 
     def _init_image_properties(self):
@@ -286,7 +284,7 @@ def main():
     config = RenderConfig(
         columns=args.columns,
         rows=args.rows,
-        # font_path=args.font,
+        font_family=args.font,
         style=args.style,
     )
 
