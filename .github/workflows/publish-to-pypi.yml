@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 jobs:
-  build-and-publish:
+  build-test-publish:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,8 +17,19 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install Hatch
-        run: pip install hatch
+      - name: Install dependencies
+        run: |
+          pip install hatch
+          pip install coverage
+          pip install codecov
+
+      - name: Run tests with coverage
+        run: |
+          hatch run coverage run -m pytest
+          hatch run coverage report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
 
       - name: Build the package
         run: hatch build
