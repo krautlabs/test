@@ -247,7 +247,7 @@ class Render:
             if self.cfg.first_bg_color is None:
                 first_bg_color = "white"
             self.render_background_layer(
-                first_color=first_bg_color,
+                first_color=self.cfg.first_bg_color,
                 second_color=self.cfg.second_bg_color,
             )
         if self.shadow_layer is None:
