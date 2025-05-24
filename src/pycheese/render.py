@@ -51,6 +51,8 @@ class RenderConfig:
     shadow_blur: int = 6
     shadow_color: str = "black"
     shadow_alpha: int = 180
+    first_bg_color: str | None = None
+    second_bg_color: str | None = None
     text_background_color: str | None = None
     default_text_color: str | None = None
     font: Optional[Font] = field(init=False)
@@ -80,7 +82,7 @@ class RenderConfig:
                 self.text_background_color = style_obj.background_color
             except AttributeError:
                 print(
-                    f"Style {self.style} has no background_color attribute, using white."
+                    f"Style {self.style} has no text_background_color attribute, using white."
                 )
                 self.text_background_color = "white"
 
@@ -184,7 +186,7 @@ class Render:
         )
         self.titlebar_layer.paste(terminal, (self.cfg.margin, self.cfg.margin))
 
-    def render_text_layer(self, code, style="monokai", background_color=None):
+    def render_text_layer(self, code, style="monokai", text_background_color=None):
         """Render text area according to style on top of solid background."""
 
         tokens = tokenize(
@@ -195,14 +197,14 @@ class Render:
         )
         wrapped_lines = wrap_tokens(tokens, width=self.cfg.columns)
 
-        if background_color is None:
-            background_color = self.cfg.text_background_color
-        background_color = any_color_to_rgba(background_color)
+        if text_background_color is None:
+            text_background_color = self.cfg.text_background_color
+        text_background_color = any_color_to_rgba(text_background_color)
 
         terminal = Image.new(
             "RGBA",
             (self.window_width, self.window_height),
-            background_color,
+            text_background_color,
         )
         terminal_draw = ImageDraw.Draw(terminal)
 
@@ -241,9 +243,16 @@ class Render:
         self.final_image.alpha_composite(self.titlebar_layer)
         self.final_image = self.final_image.filter(ImageFilter.GaussianBlur(blur))
 
-    def render(self, code):
+    def render(self, code=None):
+        if code is None:
+            code = " "
         if self.bg_layer is None:
-            self.render_background_layer()
+            if self.cfg.first_bg_color is None:
+                first_bg_color = "white"
+            self.render_background_layer(
+                first_color=first_bg_color,
+                second_color=self.cfg.second_bg_color,
+            )
         if self.shadow_layer is None:
             self.render_shadow_layer(
                 shadow_offset=self.cfg.shadow_offset,
@@ -270,10 +279,6 @@ def main():
     parser = get_argparser()
     args = parser.parse_args()
 
-    # if not Path(args.font).exists():
-    #     raise FileNotFoundError("Font file not found. Provide a valid TTF file.")
-    #     print(list(get_all_styles()))
-
     if args.file:
         with open(args.file, "r", encoding="utf-8") as f:
             code = f.read()
@@ -283,9 +288,6 @@ def main():
             sys.exit(1)
         else:
             code = sys.stdin.read()
-
-    # if not Path(args.font).exists():
-    #     raise FileNotFoundError("Font file not found. Provide a valid TTF file.")
 
     config = RenderConfig(
         columns=args.columns,
