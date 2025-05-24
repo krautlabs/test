@@ -3,3 +3,4 @@ source = .
 omit =
     tests/*
     */__init__.py
+    src/pycheese/args.py
