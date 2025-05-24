@@ -29,18 +29,34 @@
 pip install pycheese
 ```
 
+Test if the tool works by running the following and looking at the output PNG file.
+
+```bash
+echo "import os" | pycheese 
+```
+
+
 ## Command Line Usage
 
-Render the code in `test.py` in a default 80x24 window. By default, the window scrolls with the code and only the last 24 rows will be shown if the code does not fit into the window.
+Render the code in `sample_code.py` in a default 80x24 window. By default, the window scrolls with the code and only the last 24 rows will be shown if the code does not fit into the window.
 
 ```bash
 pycheese --file tests/sample_code.py
 ```
 
-Use the `--columns` and `--rows` options to extend the window.
+Use the `--columns` and `--rows` options to change the window size.
+
 ```bash
 pycheese --columns 45 --file tests/sample_code.py
 ```
+
+Set the `--style` to dracula and save the output to `window.png`.
+
+```bash
+pycheese --columns 80 --rows 24 --style dracula \
+         --file tests/sample_code.py --output window.png 
+```
+
 
 ## Docker
 
@@ -54,42 +70,48 @@ Then the application can be run easily from within the container.
 
 ```bash
 docker run --rm pycheese-app --help
-docker run -v $(pwd):/data --rm pycheese-app --columns 45 --file tests/sample_code.py --output out5.png --font JetBrainsMono
 ```
 
-Mount the local directory as follows to process files.
+Mount the local directory to allow the docker container to read Python files and output images.
 
 ```bash
 docker run -v $(pwd):/data --rm pycheese-app --columns 45 --file code.py --output out.png
 ```
 
+
 ## Programmatic Usage
 
 ```python
-from pycheese import PyCheese, PyCheeseConfig
+from pycheese import *
 
-tool = PyCheese()
-tool.render_code_to_file(
-    code='print("Hello, world!")',
-    output_path='hello_world.png'
-)
+config = RenderConfig()
+render = Render(config)
+
+code = 'print("Hello, world!")'
+render.render(code=code)
+render.save_image("hello_world.png")
 ```
 
 A slightly more custom way to call the tool is to create a `RenderConfig` to overwrite specific parameters.
 
 ```python
-config = PyCheeseConfig(
-    shadow_offset = 20,
-    shadow_blur = 3,
-    shadow_color = "purple",
-    shadow_alpha = 220,
+config = RenderConfig(
+    rows = 10,
+    columns = 30,
+    shadow_blur = 10,
+    shadow_color = "darkblue",
+    shadow_alpha = 80,
+    shadow_offset = 40,
+    margin = 50,
+    first_bg_color = "#775588",
+    second_bg_color = "#663355",
 )
-renderer = PyCheese(
-    code='print("Hello, world!")',
-    config=config,
-)
-renderer.render()  # render all layers
-renderer.final_image.show()  # access PIL image object
+render = Render(config)
+
+code = 'print("Hello, world!")'
+render.render(code=code)
+# show the PIL image object directly
+render.final_image.show()
 ```
 
 PyCheese renders four distinct layers: background, shadow, text, and title bar. They are composited into the final image. This approach allows the modification of individual layers for an animation without having to re-render any other layers.
@@ -102,16 +124,17 @@ renderer.titlebar_layer
 renderer.final_image
 ```
 
-It's possible to efficiently generate an animation by only modifying the layer that is changing.
+It's possible to efficiently generate multiple images or an animation by only modifying the layer that is changing. Here we change the style of the text layer, all the remaining layers remain unchanges will not get re-rendered when `.render()` is called.
 
 ```python
+import time
+code='print("Hello, world!")'
 
-code='print("Hello, world!")',
-for style in ["monokai", ""]:
-    renderer.render_text_layer(code=code, style=style)
-    renderer.render()
-    renderer.final_image.show()
-    print(color)
+for style in ["monokai", "dracula"]:
+    render.render_text_layer(code=code, style=style)
+    render.render()
+    render.final_image.show()
+    time.sleep(0.5)
 ```
 
 ## Fonts
