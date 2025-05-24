@@ -81,6 +81,8 @@ docker run -v $(pwd):/data --rm pycheese-app --columns 45 --file code.py --outpu
 
 ## Programmatic Usage
 
+The Python API allows more fine-grained control over the end-result by setting the appropiate parameters of the `RenderConfig()`.
+
 ```python
 from pycheese import *
 
@@ -137,7 +139,32 @@ for style in ["monokai", "dracula"]:
 
 ## Fonts
 
-The tool comes with the [JetBrainsMono](https://github.com/JetBrains/JetBrainsMono) font. Direct the tool to your fonts folder for more font choices.
+The tool comes with the [JetBrainsMono](https://github.com/JetBrains/JetBrainsMono) font. Support for custom fonts is experimental at this point.
+
+To add more fonts, edit the `font_config.toml` file in the `fonts/` directory. And download it with the included `fonts-tool`.
+
+```bash
+fonts-tool --update-font NewFont
+```
+
+Once added the font can be selected using its family name, the name excluding regular/bold/italic suffixes and the `.ttf` extension. The included font's family name is `JetBrainsMono` and the family name for the above example is `"MesloLGS NF"`. Check quickly if the new font works by setting the `--font` option.
+
+```bash
+echo "import os" | pycheese --font "MesloLGS NF"
+```
+
+
+You can list all available fonts.
+
+```bash
+fonts-tool --list
+```
+
+And even add local fonts.
+
+```bash
+fonts-tool --add-local-font ~/Library/Fonts/MesloLGS\ NF\ Regular.ttf
+```
 
 
 ## Styles
