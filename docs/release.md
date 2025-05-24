@@ -22,7 +22,7 @@ VERSION=0.2.7
 hatch version $VERSION
 
 # commit the updated init file
-git add src/pycheese/__init__.py  
+git add src/pycheese/__init__.py
 git commit -m"bump version to $VERSION"
 ```
 
@@ -31,6 +31,37 @@ Tag the release to trigger the publication to PyPi.
 ```bash
 git tag v$VERSION
 git push origin v$VERSION
+```
+
+## Environments
+
+The `runtime` environment includes only the dependencies that come with `pip install pycheese`.
+
+```bash
+hatch shell runtime
+```
+
+An interactive IPython session in the dev (`default`) environment can be started with:
+
+```bash
+hatch run default:ipython
+```
+
+
+All other environments will include additional dependencies under `[tool.hatch.envs.default]`.
+
+Environments can be deleted and created with:
+
+```bash
+hatch env remove default
+hatch env create default
+```
+
+
+# Update Environments
+
+```bash
+uv pip compile pyproject.toml --upgrade
 ```
 
 
