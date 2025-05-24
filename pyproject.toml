@@ -41,7 +41,8 @@ dependencies = [
 [tool.hatch.envs.docs]
 dependencies = [
     "mkdocs>=1.6.0",
-    "mkdocs-material>=9.5.15"
+    "mkdocs-material>=9.5.15",
+    "mkdocstrings[python]",
 ]
 
 [tool.hatch.version]

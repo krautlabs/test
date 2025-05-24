@@ -30,6 +30,11 @@ html:
 	hatch run coverage html
 	@echo "HTML report generated at htmlcov/index.html"
 
+
+# Generate documentation
+serve-docs:
+	hatch run docs:mkdocs serve
+
 # Build tar and whl artifacts
 build:
 	hatch build
