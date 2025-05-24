@@ -2,13 +2,10 @@ import os
 import sys
 import textwrap
 from dataclasses import dataclass, field
-from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Optional
 
-from PIL import Image, ImageColor, ImageDraw, ImageFilter, ImageFont
-from pygments import highlight
-from pygments.formatter import Formatter
+from PIL import Image, ImageDraw, ImageFilter
 from pygments.lexers import PythonLexer
 from pygments.styles import get_all_styles, get_style_by_name
 from pygments.util import ClassNotFound
