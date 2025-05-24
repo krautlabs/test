@@ -58,14 +58,21 @@ hatch env create default
 ```
 
 
-# Update Environments
+## Update Environments
 
 ```bash
 uv pip compile pyproject.toml --upgrade
 ```
 
 
-# Generate Hero Image
+## Generate documentation
+
+```bash
+hatch run docs:mkdocs serve
+```
+
+
+## Generate Hero Image
 
 ```bash
 pycheese --columns 50 --rows 15 --style dracula \

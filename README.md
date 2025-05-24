@@ -32,7 +32,7 @@ pip install pycheese
 Test if the tool works by running the following and looking at the output PNG file.
 
 ```bash
-echo "import os" | pycheese 
+echo "import os" | pycheese
 ```
 
 
@@ -54,7 +54,7 @@ Set the `--style` to dracula and save the output to `window.png`.
 
 ```bash
 pycheese --columns 80 --rows 24 --style dracula \
-         --file tests/sample_code.py --output window.png 
+         --file tests/sample_code.py --output window.png
 ```
 
 
@@ -174,7 +174,7 @@ PyCheese is by far not the only way to produce beautiful images of code. (Howeve
 
 ## Font License
 
-JetBrains Mono typeface is available under the [OFL-1.1 License](https://github.com/JetBrains/JetBrainsMono/blob/master/OFL.txt) and can be used free of charge, for both commercial and non-commercial purposes. You do not need to give credit to JetBrains, although we will appreciate it very much if you do. See [JetBrainsMono License](https://github.com/JetBrains/JetBrainsMono?tab=readme-ov-file#license) 
+JetBrains Mono typeface is available under the [OFL-1.1 License](https://github.com/JetBrains/JetBrainsMono/blob/master/OFL.txt) and can be used free of charge, for both commercial and non-commercial purposes. You do not need to give credit to JetBrains, although we will appreciate it very much if you do. See [JetBrainsMono License](https://github.com/JetBrains/JetBrainsMono?tab=readme-ov-file#license)
 
 
 ## License
