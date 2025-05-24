@@ -24,6 +24,7 @@ hatch version $VERSION
 # commit the updated init file
 git add src/pycheese/__init__.py
 git commit -m"bump version to $VERSION"
+git push
 ```
 
 Tag the release to trigger the publication to PyPi.
