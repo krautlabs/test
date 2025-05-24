@@ -114,17 +114,15 @@ render.render(code=code)
 render.final_image.show()
 ```
 
-PyCheese renders four distinct layers: background, shadow, text, and title bar. They are composited into the final image. This approach allows the modification of individual layers for an animation without having to re-render any other layers.
+PyCheese renders four distinct layers: background, shadow, text, and title bar. They are composited into the final image. This approach allows the modification of individual layers for an animation without having to re-render any other layers. Each layer can be rendered separately (e.g. `.render_text_layer()`) and retrieved (e.g. `.text_layer`).
 
-```python
-renderer.bg_layer
-renderer.shadow_layer
-renderer.text_layer
-renderer.titlebar_layer
-renderer.final_image
-```
+- `bg_layer`
+- `shadow_layer`
+- `text_layer`
+- `titlebar_layer`
+- `final_image`
 
-It's possible to efficiently generate multiple images or an animation by only modifying the layer that is changing. Here we change the style of the text layer, all the remaining layers remain unchanges will not get re-rendered when `.render()` is called.
+It's possible to efficiently generate multiple images or an animation by only modifying the layer that is changing. Here we change the style of the text layer, all the remaining layers remain unchanged and will not get re-rendered when `.render()` is called.
 
 ```python
 import time
@@ -146,25 +144,18 @@ The tool comes with the [JetBrainsMono](https://github.com/JetBrains/JetBrainsMo
 
 PyCheese uses the Pygments library which comes with a range of styles that can be selected with the `--style` options. The complete list can be found [here](https://pygments.org/styles/).
 
-Some dark styles:
-- monokai
-- zenburn
-- nord
-- dracula
-- gruvbox-dark
-
-
-Some light styles:
-- solarized-light
-- gruvbox-light
-- friendly
-- friendly_grayscale
-- murphy
+| Dark Style   | Light Style        |
+|--------------|--------------------|
+| monokai      | solarized-light    |
+| zenburn      | gruvbox-light      |
+| nord         | friendly           |
+| dracula      | friendly_grayscale |
+| gruvbox-dark | murphy             |
 
 
 ## Line Wrapping
 
-The line wrapping can be independently applied using the `linewrap.py` script.
+Line wrapping is applied to fit content into the limits of the rendered terminal window. Currently, the line wrapping happens at character level and can break up words. To see it in action, run the `linewrap.py` script directly.
 
 ```bash
 hatch run python src/pycheese/utils/linewrap.py --columns 20 tests/sample_code.py
@@ -172,6 +163,8 @@ hatch run python src/pycheese/utils/linewrap.py --columns 20 tests/sample_code.p
 
 
 ## Alternatives
+
+PyCheese is by far not the only way to produce beautiful images of code. (However, it is one of few that can be easily run locally and used for automation.) Here is a small selection of alternatives:
 
 - [Raycast](https://www.ray.so/)
 - [codepng](https://www.codepng.app/)
