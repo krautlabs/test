@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 import tomllib
 from enum import Enum
 from importlib.resources import as_file, files
@@ -187,7 +188,7 @@ def font_to_toml_dict(font_path: str) -> dict:
             "Expected the regular variant filename to end with 'Regular.ttf'"
         )
 
-    font_family = filename.replace("-Regular.ttf", "")
+    font_family = re.sub(r"[-_ ]regular\.ttf$", "", filename, flags=re.IGNORECASE)
     font_base_path = directory / font_family
 
     def make_variants(font_family, style: str):
@@ -201,7 +202,7 @@ def font_to_toml_dict(font_path: str) -> dict:
             for suffix in suffixes:
                 yield f"{font_family}{sep}{suffix}.ttf"
 
-    fonts = {FontStyle.REGULAR.value: str(font_path)}
+    fonts = {FontStyle.REGULAR.value: str(filename)}
     for style in list(FontStyle)[1:]:
         for variant in make_variants(font_family, style.value):
             origin = Path(font_path.parent) / variant
@@ -227,11 +228,6 @@ def add_local_font(font_path: str):
 
     if d:
         font_config = load_font_config()
-        print("Updating existing config")
-        print(font_config)
-        print("with ===================")
-        print(d)
-        print("========================")
         font_config.update(d)
         save_font_config(font_config)
 
