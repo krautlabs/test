@@ -3,7 +3,7 @@
 ![PyPI version](https://img.shields.io/pypi/v/pycheese?style=flat-square)
 ![Codecov](https://img.shields.io/codecov/c/github/krautlabs/test?style=flat-square)
 ![License](https://img.shields.io/github/license/krautlabs/test?style=flat-square)
-![Python Package CI](https://github.com/krautlabs/test/actions/workflows/python-package-ci.yml/badge.svg?style=flat-square)
+![Python Package CI](https://github.com/krautlabs/test/actions/workflows/publish-to-pypi.yml/badge.svg?style=flat-square)
 
 
 **PyCheese** is a Python-based tool for generating beautiful, high-quality images of code with syntax highlighting, rendered in a macOS-style terminal window. Built for automation and easy customization, it can be easily integrated into scripts or pipelines.
