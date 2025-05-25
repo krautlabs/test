@@ -1,0 +1,19 @@
+name: CI All Workflows Passed
+
+on:
+  workflow_run:
+    workflows:
+      - "Python 3.11"
+      - "Python 3.12"
+      - "Python 3.13"
+      - "Coverage Report"
+    types:
+      - completed
+
+jobs:
+  check:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: All workflows passed
+        run: echo "✅ All workflows succeeded!"

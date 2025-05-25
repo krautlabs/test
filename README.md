@@ -1,21 +1,13 @@
 # PyCheese
 
-![PyPI version](https://img.shields.io/pypi/v/pycheese?style=flat-square)
-![Codecov](https://img.shields.io/codecov/c/github/krautlabs/test?style=flat-square)
-![License](https://img.shields.io/github/license/krautlabs/test?style=flat-square)
-![Test Python 3.11](https://github.com/krautlabs/test/actions/workflows/test-python-3.11.yml/badge.svg?style=flat-square)
-![Test Python 3.12](https://github.com/krautlabs/test/actions/workflows/test-python-3.12.yml/badge.svg?style=flat-square)
-![Test Python 3.13](https://github.com/krautlabs/test/actions/workflows/test-python-3.13.yml/badge.svg?style=flat-square)
-
-## new badges
-
-[![CI: Python 3.11](https://img.shields.io/github/actions/workflow/status/krautlabs/test/test-python-3.11.yml?logo=githubactions&label=Test%203.11&logoColor=white&color=4169E1)](https://github.com/krautlabs/test/actions/workflows/test-python-3.11.yml)
-[![CI: Python 3.12](https://img.shields.io/github/actions/workflow/status/krautlabs/test/test-python-3.12.yml?logo=githubactions&label=Test%203.12&logoColor=white&color=4169E1)](https://github.com/krautlabs/test/actions/workflows/test-python-3.12.yml)
-[![CI: Python 3.13](https://img.shields.io/github/actions/workflow/status/krautlabs/test/test-python-3.13.yml?logo=githubactions&label=Test%203.13&logoColor=white&color=4169E1)](https://github.com/krautlabs/test/actions/workflows/test-python-3.13.yml)
-
-[![Codecov](https://img.shields.io/codecov/c/github/krautlabs/test?logo=codecov&logoColor=white&label=Coverage&color=5D4ED3)](https://app.codecov.io/gh/krautlabs/test)
 [![PyPI](https://img.shields.io/pypi/v/pycheese?logo=pypi&logoColor=white&label=PyPI&color=7934C5)](https://pypi.org/project/pycheese/)
+[![Codecov](https://img.shields.io/codecov/c/github/krautlabs/test?logo=codecov&logoColor=white&label=Coverage&color=5D4ED3)](https://app.codecov.io/gh/krautlabs/test)
 [![License](https://img.shields.io/github/license/krautlabs/test?logo=opensourceinitiative&logoColor=white&label=License&color=8A2BE2)](https://github.com/krautlabs/test/blob/main/LICENSE)
+[![CI All Passed](https://img.shields.io/github/actions/workflow/status/krautlabs/test/ci.yml?label=CI%20All%20Passed&logo=githubactions&logoColor=white&color=2E8B57)](https://github.com/krautlabs/test/actions/workflows/ci.yml)
+[![CI: Python 3.11](https://img.shields.io/github/actions/workflow/status/krautlabs/test/test-python-3.11.yml?logo=githubactions&label=Python%203.11&logoColor=white&color=4169E1)](https://github.com/krautlabs/test/actions/workflows/test-python-3.11.yml)
+[![CI: Python 3.12](https://img.shields.io/github/actions/workflow/status/krautlabs/test/test-python-3.12.yml?logo=githubactions&label=Python%203.12&logoColor=white&color=4169E1)](https://github.com/krautlabs/test/actions/workflows/test-python-3.12.yml)
+[![CI: Python 3.13](https://img.shields.io/github/actions/workflow/status/krautlabs/test/test-python-3.13.yml?logo=githubactions&label=Python%203.13&logoColor=white&color=4169E1)](https://github.com/krautlabs/test/actions/workflows/test-python-3.13.yml)
+
 
 **PyCheese** is a Python-based tool for generating beautiful, high-quality images of code with syntax highlighting, rendered in a macOS-style terminal window. Built for automation and easy customization, it can be easily integrated into scripts or pipelines.
 
