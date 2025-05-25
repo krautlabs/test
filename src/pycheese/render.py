@@ -85,7 +85,6 @@ class RenderConfig:
 
         if self.default_text_color is None:
             r, g, b = Color.from_any_color(self.text_background_color).rgb
-            # any_color_to_rgba(self.text_background_color)
             self.default_text_color = (255 - r, 255 - g, 255 - b)
 
 
@@ -117,9 +116,6 @@ class Render:
 
     def render_background_layer(self, first_color="white", second_color=None):
         """Render solid or gradient background layer."""
-        # rgba1 = Color.from_any_color(first_color).rgba
-        # any_color_to_rgba(first_color)
-
         if second_color is None:
             self.bg_layer = create_uniform_background(
                 self.img_width,
@@ -144,7 +140,6 @@ class Render:
     ):
         """Render floating window shadow layer."""
         rgb = Color.from_any_color(shadow_color).rgb
-        # rgba = any_color_to_rgba(shadow_color)
         assert 0 <= shadow_alpha <= 255, f"{shadow_alpha=} is outside range [0..255]"
         rgba = rgb + (shadow_alpha,)
         shadow = Image.new("RGBA", (self.img_width, self.img_height), (0, 0, 0, 0))
@@ -200,7 +195,6 @@ class Render:
         if text_background_color is None:
             text_background_color = self.cfg.text_background_color
         text_background_color = Color.from_any_color(text_background_color).rgba
-        # text_background_color = any_color_to_rgba(text_background_color)
 
         terminal = Image.new(
             "RGBA",

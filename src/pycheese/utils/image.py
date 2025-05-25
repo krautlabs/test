@@ -2,7 +2,6 @@ from PIL import Image, ImageColor
 
 
 def create_uniform_background(width, height, color="white"):
-    # color = any_color_to_rgba(color)
     return Image.new("RGBA", (width, height), Color.from_any_color(color).rgba)
 
 
@@ -37,32 +36,6 @@ def create_gradient_background(width, height, start_color="coral", end_color="sa
             image.putpixel((x, y), (r, g, b))
 
     return image
-
-
-# def any_color_to_rgba(color):
-#     """Converts any color name (str), RGB, or RGBA tuple to RGBA.
-#
-#     Find a list of colors at https://www.w3.org/TR/css-color-3/#svg-color
-#     For example, color can be \"skyblue\", (255, 126, 0), or (0, 255, 80, 0).
-#     """
-#     if isinstance(color, str):
-#         try:
-#             return ImageColor.getcolor(color, "RGBA")
-#         except ValueError:
-#             pass
-#
-#     if isinstance(color, (tuple, list)):
-#         if len(color) == 3:
-#             color = tuple(color) + (255,)
-#         if len(color) == 4:
-#             if all(isinstance(c, int) and 0 <= c <= 255 for c in color):
-#                 return color
-#
-#     raise ValueError(
-#         "Specify a valid color name, hex color, or an RGB/RGBA tuple "
-#         "with integers in the 0-255 range."
-#     )
-#
 
 
 class Color:
