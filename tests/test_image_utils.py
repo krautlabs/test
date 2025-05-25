@@ -90,3 +90,21 @@ def test_invalid_type():
 def test_invalid_type():
     with pytest.raises(TypeError):
         Color.from_any_color(None)
+
+
+@pytest.mark.parametrize(
+    "r, g, b, a",
+    [
+        (256, 255, 255, 255),
+        (-1, 255, 255, 255),
+        (255, 256, 255, 255),
+        (255, -1, 255, 255),
+        (255, 255, 256, 255),
+        (255, 255, -1, 255),
+        (255, 255, 255, 256),
+        (255, 255, 255, -1),
+    ],
+)
+def test_color_channels_out_of_range(r, g, b, a):
+    with pytest.raises(ValueError):
+        Color(r, g, b, a)

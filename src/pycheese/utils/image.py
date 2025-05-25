@@ -67,6 +67,11 @@ def create_gradient_background(width, height, start_color="coral", end_color="sa
 
 class Color:
     def __init__(self, red, green, blue, alpha=255):
+        channels = ["red", "green", "blue", "alpha"]
+        for name, value in zip(channels, [red, green, blue, alpha]):
+            if not (0 <= value <= 255):
+                raise ValueError(f"{name} channel {value} outside range [0..255]")
+
         self.red = red
         self.green = green
         self.blue = blue
