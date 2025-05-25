@@ -1,0 +1,38 @@
+name: Coverage Report
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  coverage:
+    name: Coverage Report
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Dependencies
+        run: pip install hatch coverage codecov
+
+      - name: Run Tests with Coverage
+        run: |
+          hatch run coverage run -m pytest
+          hatch run coverage report
+          hatch run coverage xml
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
