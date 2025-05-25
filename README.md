@@ -4,6 +4,7 @@
 [![Codecov](https://img.shields.io/codecov/c/github/krautlabs/test?logo=codecov&logoColor=white&label=Coverage&color=5D4ED3)](https://app.codecov.io/gh/krautlabs/test)
 [![License](https://img.shields.io/github/license/krautlabs/test?logo=opensourceinitiative&logoColor=white&label=License&color=8A2BE2)](https://github.com/krautlabs/test/blob/main/LICENSE)
 [![CI All Passed](https://img.shields.io/github/actions/workflow/status/krautlabs/test/ci.yml?label=CI%20All%20Passed&logo=githubactions&logoColor=white&color=2E8B57)](https://github.com/krautlabs/test/actions/workflows/ci.yml)
+
 [![CI: Python 3.11](https://img.shields.io/github/actions/workflow/status/krautlabs/test/test-python-3.11.yml?logo=githubactions&label=Python%203.11&logoColor=white&color=4169E1)](https://github.com/krautlabs/test/actions/workflows/test-python-3.11.yml)
 [![CI: Python 3.12](https://img.shields.io/github/actions/workflow/status/krautlabs/test/test-python-3.12.yml?logo=githubactions&label=Python%203.12&logoColor=white&color=4169E1)](https://github.com/krautlabs/test/actions/workflows/test-python-3.12.yml)
 [![CI: Python 3.13](https://img.shields.io/github/actions/workflow/status/krautlabs/test/test-python-3.13.yml?logo=githubactions&label=Python%203.13&logoColor=white&color=4169E1)](https://github.com/krautlabs/test/actions/workflows/test-python-3.13.yml)
@@ -90,7 +91,7 @@ The Python API allows more fine-grained control over the end-result by setting t
 ```python
 from pycheese import *
 
-config = RenderConfig()
+config = RenderConfig()  # use defaults
 render = Render(config)
 
 code = 'print("Hello, world!")'
@@ -141,15 +142,33 @@ for style in ["monokai", "dracula"]:
     time.sleep(0.5)
 ```
 
+
+## Styles
+
+PyCheese uses the Pygments library which comes with a range of styles that can be selected with the `--style` options. The complete list can be found [here](https://pygments.org/styles/).
+
+| Dark Style   | Light Style        |
+|--------------|--------------------|
+| monokai      | solarized-light    |
+| zenburn      | gruvbox-light      |
+| nord         | friendly           |
+| dracula      | friendly_grayscale |
+| gruvbox-dark | murphy             |
+
+
 ## Fonts
 
-The tool comes with the [JetBrainsMono](https://github.com/JetBrains/JetBrainsMono) font. Support for custom fonts is experimental at this point.
+The tool comes with the [JetBrainsMono](https://github.com/JetBrains/JetBrainsMono) font. 
+
+> ℹ️ **Note:** Custom font support is experimental. It's recommended to use the default "JetBrainsMono".
+
 
 To add more fonts, edit the `font_config.toml` file in the `fonts/` directory. And download it with the included `fonts-tool`.
 
 ```bash
 fonts-tool --update-font NewFont
 ```
+
 
 Once added the font can be selected using its family name, the name excluding regular/bold/italic suffixes and the `.ttf` extension. The included font's family name is `JetBrainsMono` and the family name for the above example is `"MesloLGS NF"`. Check quickly if the new font works by setting the `--font` option.
 
@@ -169,19 +188,6 @@ And even add local fonts.
 ```bash
 fonts-tool --add-local-font ~/Library/Fonts/MesloLGS\ NF\ Regular.ttf
 ```
-
-
-## Styles
-
-PyCheese uses the Pygments library which comes with a range of styles that can be selected with the `--style` options. The complete list can be found [here](https://pygments.org/styles/).
-
-| Dark Style   | Light Style        |
-|--------------|--------------------|
-| monokai      | solarized-light    |
-| zenburn      | gruvbox-light      |
-| nord         | friendly           |
-| dracula      | friendly_grayscale |
-| gruvbox-dark | murphy             |
 
 
 ## Line Wrapping
