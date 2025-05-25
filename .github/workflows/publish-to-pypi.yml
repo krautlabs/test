@@ -1,12 +1,39 @@
-name: Publish Python Package
+name: Python Package CI
+
+env:
+  PYTHON_VERSION: '3.12'
 
 on:
   push:
+    branches: [main]
     tags:
       - 'v*'
 
 jobs:
-  build-test-publish:
+  test:
+    name: Test on Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Hatch
+        run: pip install hatch
+
+      - name: Run Tests
+        run: hatch run pytest
+
+  coverage:
+    name: Coverage Report (Python ${{ env.PYTHON_VERSION }})
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
@@ -15,29 +42,43 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install dependencies
-        run: |
-          pip install hatch
-          pip install coverage
-          pip install codecov
+      - name: Install Dependencies
+        run: pip install hatch coverage codecov
 
-      - name: Run tests with coverage
+      - name: Run Tests with Coverage
         run: |
           hatch run coverage run -m pytest
           hatch run coverage report
           hatch run coverage xml
 
-      - name: Upload coverage to Codecov
+      - name: Upload to Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Build the package
+  publish:
+    name: Publish to PyPI
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Hatch
+        run: pip install hatch
+
+      - name: Build Package
         run: hatch build
 
-      - name: Publish to PyPI with Hatch
+      - name: Publish to PyPI
         env:
           HATCH_INDEX_AUTH__PYPI: ${{ secrets.PYPI_API_TOKEN }}
         run: hatch publish --user __token__ --auth $HATCH_INDEX_AUTH__PYPI
