@@ -32,7 +32,7 @@ jobs:
         run: hatch run pytest
 
   coverage:
-    name: Coverage Report (Python ${{ env.PYTHON_VERSION }})
+    name: Coverage Report
     needs: test
     runs-on: ubuntu-latest
 
