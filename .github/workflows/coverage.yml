@@ -12,7 +12,6 @@ env:
 jobs:
   coverage:
     name: Coverage Report
-    needs: test
     runs-on: ubuntu-latest
 
     steps:
