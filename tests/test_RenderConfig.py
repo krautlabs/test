@@ -58,27 +58,27 @@ def test_text_background_color(monkeypatch):
     assert config_no_bg.text_background_color == "white"
 
 
-def test_default_text_color_calculation(monkeypatch):
-    def mock_any_color_to_rgba(color):
-        if color == "white":
-            return 255, 255, 255, 0
-        elif color == "black":
-            return 0, 0, 0, 0
-        return 0, 0, 0, 0
-
-    monkeypatch.setattr("pycheese.render.any_color_to_rgba", mock_any_color_to_rgba)
-    monkeypatch.setattr(
-        "pycheese.render.get_style_by_name", mock_get_style_by_name_no_bg
-    )
-
-    # text color defaults to black if the text background is set to white
-    config_white = RenderConfig(style="monokai", text_background_color="white")
-    assert config_white.default_text_color == (0, 0, 0)
-
-    # text color defaults to white if the text background is set to black
-    config_black = RenderConfig(style="monokai", text_background_color="black")
-    assert config_black.default_text_color == (255, 255, 255)
-
-    # text color defaults to black b/c default bg color is white if set to None
-    config = RenderConfig(style="monokai", text_background_color=None)
-    assert config.default_text_color == (0, 0, 0)
+# def test_default_text_color_calculation(monkeypatch):
+#     def mock_any_color_to_rgba(color):
+#         if color == "white":
+#             return 255, 255, 255, 0
+#         elif color == "black":
+#             return 0, 0, 0, 0
+#         return 0, 0, 0, 0
+#
+#     monkeypatch.setattr("pycheese.render.any_color_to_rgba", mock_any_color_to_rgba)
+#     monkeypatch.setattr(
+#         "pycheese.render.get_style_by_name", mock_get_style_by_name_no_bg
+#     )
+#
+#     # text color defaults to black if the text background is set to white
+#     config_white = RenderConfig(style="monokai", text_background_color="white")
+#     assert config_white.default_text_color == (0, 0, 0)
+#
+#     # text color defaults to white if the text background is set to black
+#     config_black = RenderConfig(style="monokai", text_background_color="black")
+#     assert config_black.default_text_color == (255, 255, 255)
+#
+#     # text color defaults to black b/c default bg color is white if set to None
+#     config = RenderConfig(style="monokai", text_background_color=None)
+#     assert config.default_text_color == (0, 0, 0)

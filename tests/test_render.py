@@ -89,6 +89,23 @@ def test_render_uniform_background_layer(render_instance):
     assert bg_layer.getpixel((0, 0)) == ImageColor.getcolor(color_name, "RGBA")
 
 
+# def test_render_gradient_background_layer(render_instance):
+#     first_color = "blue"
+#     second_color = "red"
+#     render_instance.render_background_layer(first_color, second_color)
+#     bg_layer = render_instance.bg_layer
+#     assert isinstance(bg_layer, Image.Image)
+#     assert bg_layer.size == (
+#         render_instance.img_width,
+#         render_instance.img_height,
+#     )
+#     assert bg_layer.getpixel((0, 0)) == ImageColor.getcolor(first_color, "RGBA")
+#     assert bg_layer.getpixel(
+#         (render_instance.img_width - 1, render_instance.img_height - 1)
+#     ) == (254, 0, 0, 255)
+#
+
+
 def test_render_shadow_layer(render_instance):
     render_instance.render_shadow_layer()
     assert isinstance(render_instance.shadow_layer, Image.Image)

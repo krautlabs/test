@@ -18,20 +18,19 @@ git commit
 Run the following commands to increment the package's `__version__` number in the `__init__.py` file.
 
 ```bash
-VERSION=0.2.7
+VERSION=0.3.1
 hatch version $VERSION
 
 # commit the updated init file
 git add src/pycheese/__init__.py
 git commit -m"bump version to $VERSION"
-git push
 ```
 
 Tag the release to trigger the publication to PyPi.
 
 ```bash
 git tag v$VERSION
-git push origin v$VERSION
+git push origin main --tags
 ```
 
 ## Environments

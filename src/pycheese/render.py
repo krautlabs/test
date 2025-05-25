@@ -13,7 +13,7 @@ from pygments.util import ClassNotFound
 from pycheese.args import get_argparser
 from pycheese.utils.fonts import Font, font_paths, get_font_config_resource
 from pycheese.utils.image import (
-    any_color_to_rgba,
+    Color,
     create_gradient_background,
     create_uniform_background,
 )
@@ -48,7 +48,7 @@ class RenderConfig:
     shadow_blur: int = 6
     shadow_color: str = "black"
     shadow_alpha: int = 180
-    first_bg_color: str | None = None
+    first_bg_color: str | None = "white"
     second_bg_color: str | None = None
     text_background_color: str | None = None
     default_text_color: str | None = None
@@ -84,7 +84,8 @@ class RenderConfig:
                 self.text_background_color = "white"
 
         if self.default_text_color is None:
-            r, g, b, _ = any_color_to_rgba(self.text_background_color)
+            r, g, b = Color.from_any_color(self.text_background_color).rgb
+            # any_color_to_rgba(self.text_background_color)
             self.default_text_color = (255 - r, 255 - g, 255 - b)
 
 
@@ -116,7 +117,8 @@ class Render:
 
     def render_background_layer(self, first_color="white", second_color=None):
         """Render solid or gradient background layer."""
-        rgba1 = any_color_to_rgba(first_color)
+        # rgba1 = Color.from_any_color(first_color).rgba
+        # any_color_to_rgba(first_color)
 
         if second_color is None:
             self.bg_layer = create_uniform_background(
@@ -141,9 +143,10 @@ class Render:
         corner_radius=6,
     ):
         """Render floating window shadow layer."""
-        rgba = any_color_to_rgba(shadow_color)
+        rgb = Color.from_any_color(shadow_color).rgb
+        # rgba = any_color_to_rgba(shadow_color)
         assert 0 <= shadow_alpha <= 255, f"{shadow_alpha=} is outside range [0..255]"
-        rgba = rgba[:3] + (shadow_alpha,)
+        rgba = rgb + (shadow_alpha,)
         shadow = Image.new("RGBA", (self.img_width, self.img_height), (0, 0, 0, 0))
         shadow_draw = ImageDraw.Draw(shadow)
         shadow_draw.rounded_rectangle(
@@ -196,7 +199,8 @@ class Render:
 
         if text_background_color is None:
             text_background_color = self.cfg.text_background_color
-        text_background_color = any_color_to_rgba(text_background_color)
+        text_background_color = Color.from_any_color(text_background_color).rgba
+        # text_background_color = any_color_to_rgba(text_background_color)
 
         terminal = Image.new(
             "RGBA",
@@ -244,8 +248,6 @@ class Render:
         if code is None:
             code = " "
         if self.bg_layer is None:
-            if self.cfg.first_bg_color is None:
-                first_bg_color = "white"
             self.render_background_layer(
                 first_color=self.cfg.first_bg_color,
                 second_color=self.cfg.second_bg_color,
@@ -293,17 +295,17 @@ def main():
         style=args.style,
     )
 
-    renderer = Render(
+    render = Render(
         config=config,
     )
 
     # Monokai-style purple gradient (dark to light purple)
     # end_color = (93, 80, 124)
     # start_color = (151, 125, 201)
-    # renderer.render_background_layer(first_color=start_color, second_color=end_color)
+    # render.render_background_layer(first_color=start_color, second_color=end_color)
 
-    renderer.render(code=code)
-    renderer.save_image(args.output)
+    render.render(code=code)
+    render.save_image(args.output)
 
 
 if __name__ == "__main__":

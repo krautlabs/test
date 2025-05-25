@@ -19,29 +19,30 @@
 ## Features
 
 - **Syntax Highlighting** – Utilizes [Pygments](https://pygments.org) with support for dozens of languages.
-- **macOS-style Terminal UI** – Recreates the terminal header and shadow.
-- **Fonts** – Use any TTF font, comes with JetBrains Mono for elegant, readable code.
+- **MacOS-Style Terminal UI** – Recreates the terminal header and shadow.
+- **Fonts** – Comes with JetBrains Mono for elegant, readable code. Use any TTF font.
 - **Fully Scriptable** – Designed to run headlessly from scripts, CI pipelines, or other Python apps.
 - **Easily Customizable** – Modify themes, fonts, window styles, and more in plain Python.
-- **Self-contained** – No need for browsers or servers. Everything runs locally.
+- **Self-contained** – No need for connectivity and REST calls. Everything runs locally.
 
 ---
 
 
-## Installation
+## Installation & Quickstart
 
 ```bash
 pip install pycheese
 ```
 
-Test if the tool works by running the following and looking at the output PNG file.
+Run the following and look at the PNG file.
 
 ```bash
 echo "import os" | pycheese
 ```
 
+## Usage
 
-## Command Line Usage
+### Command Line
 
 Render the code in `sample_code.py` in a default 80x24 window. By default, the window scrolls with the code and only the last 24 rows will be shown if the code does not fit into the window.
 
@@ -63,30 +64,30 @@ pycheese --columns 80 --rows 24 --style dracula \
 ```
 
 
-## Docker
+### Docker
 
-It's also possible to run the application in an isolated container. First, the Docker image needs to be built.
+It's also possible to run the application in an isolated container. First, build the Docker image.
 
 ```bash
 docker build -t pycheese-app .
 ```
 
-Then the application can be run easily from within the container.
+Then run the application container.
 
 ```bash
 docker run --rm pycheese-app --help
 ```
 
-Mount the local directory to allow the docker container to read Python files and output images.
+Mount the local directory to allow Docker to read Python files and save image files.
 
 ```bash
-docker run -v $(pwd):/data --rm pycheese-app --columns 45 --file code.py --output out.png
+docker run -v $(pwd):/data --rm pycheese-app --file code.py --output out.png
 ```
 
 
-## Programmatic Usage
+### Python API
 
-The Python API allows more fine-grained control over the end-result by setting the appropiate parameters of the `RenderConfig()`.
+The Python API allows more fine-grained control over the end-result by setting the appropiate configuration parameters. First create a `RenderConfig` and then a `Render` object. Then call `.render(code="import os")` on the `Render` object and save the output with `.save_image()`.
 
 ```python
 from pycheese import *
@@ -99,7 +100,7 @@ render.render(code=code)
 render.save_image("hello_world.png")
 ```
 
-A slightly more custom way to call the tool is to create a `RenderConfig` to overwrite specific parameters.
+Any parameters can be set via the `RenderConfig`. Defaults will be used for the remaining ones.
 
 ```python
 config = RenderConfig(
@@ -120,6 +121,9 @@ render.render(code=code)
 # show the PIL image object directly
 render.final_image.show()
 ```
+
+
+## Layers & Animations
 
 PyCheese renders four distinct layers: background, shadow, text, and title bar. They are composited into the final image. This approach allows the modification of individual layers for an animation without having to re-render any other layers. Each layer can be rendered separately (e.g. `.render_text_layer()`) and retrieved (e.g. `.text_layer`).
 
@@ -145,7 +149,7 @@ for style in ["monokai", "dracula"]:
 
 ## Styles
 
-PyCheese uses the Pygments library which comes with a range of styles that can be selected with the `--style` options. The complete list can be found [here](https://pygments.org/styles/).
+PyCheese uses the Pygments library which comes with a range of styles that can be selected with the `--style` options. The complete list with examples can be found [here](https://pygments.org/styles/).
 
 | Dark Style   | Light Style        |
 |--------------|--------------------|
@@ -166,7 +170,7 @@ The tool comes with the [JetBrainsMono](https://github.com/JetBrains/JetBrainsMo
 To add more fonts, edit the `font_config.toml` file in the `fonts/` directory. And download it with the included `fonts-tool`.
 
 ```bash
-fonts-tool --update-font NewFont
+font-tool --update-font NewFont
 ```
 
 
@@ -180,22 +184,22 @@ echo "import os" | pycheese --font "MesloLGS NF"
 You can list all available fonts.
 
 ```bash
-fonts-tool --list
+font-tool --list
 ```
 
 And even add local fonts.
 
 ```bash
-fonts-tool --add-local-font ~/Library/Fonts/MesloLGS\ NF\ Regular.ttf
+font-tool --add-local-font ~/Library/Fonts/MesloLGS\ NF\ Regular.ttf
 ```
 
 
 ## Line Wrapping
 
-Line wrapping is applied to fit content into the limits of the rendered terminal window. Currently, the line wrapping happens at character level and can break up words. To see it in action, run the `linewrap.py` script directly.
+Line wrapping is applied to fit content into the limits of the rendered terminal window. Currently, the line wrapping happens at character level and can break up words. To see it in action, run the `linewrap` script directly.
 
 ```bash
-hatch run python src/pycheese/utils/linewrap.py --columns 20 tests/sample_code.py
+linewrap --columns 20 tests/sample_code.py
 ```
 
 
