@@ -53,4 +53,5 @@ Homepage = "https://github.com/krautlabs/pycheese"
 
 [project.scripts]
 pycheese= "pycheese.render:main"
-fonts-tool= "pycheese.utils.fonts:main"
+font-tool= "pycheese.utils.fonts:main"
+linewrap= "pycheese.utils.linewrap:main"

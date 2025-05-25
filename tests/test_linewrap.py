@@ -3,7 +3,7 @@ import textwrap
 import pytest
 from pygments.token import Token
 
-from pycheese.utils.linewrap import *
+from pycheese.utils.linewrap_core import *
 
 newline_token = ("\n", "#f8f8f2", "regular", Token.Text.Whitespace, 0)
 single_token = ("import", "#ff4689", "regular", Token.Keyword.Namespace, 6)
@@ -36,15 +36,14 @@ def test_tokenize():
     assert result_monokai == expected_monokai
 
 
+# @pytest.mark.parametrize("pos", [-1])
+def test_split_token_zero_printable_length():
+    token = ("\n", "#f8f8f2", "regular", Token.Text.Whitespace, 0)
+    assert split_token(token, 0) == [token]
+
+
 @pytest.mark.parametrize("pos", [-1])
 def test_split_negative(pos):
-    with pytest.raises(ValueError):
-        split_token(single_token, pos=pos)
-
-
-@pytest.mark.parametrize("pos", [len(single_token[0])])
-def test_split_after_token(pos):
-    """split at len(token) + 1"""
     with pytest.raises(ValueError):
         split_token(single_token, pos=pos)
 
@@ -65,6 +64,13 @@ def test_split_one(pos):
     ]
     result = split_token(single_token, pos=pos)
     assert result == expected
+
+
+@pytest.mark.parametrize("pos", [len(single_token[0])])
+def test_split_after_token(pos):
+    """split at len(token) + 1"""
+    with pytest.raises(ValueError):
+        split_token(single_token, pos=pos)
 
 
 def test_no_wrap_single_short_token():
@@ -135,3 +141,43 @@ def test_wrap_long_line_at_existing_newline():
     ]
     result = wrap_tokens(four_tokens, width=9)
     assert result == expected
+
+
+def test_ruler_custom_length():
+    result = ruler(17)
+    assert result == "0123456789abcdef0"
+    assert len(result) == 17
+
+
+def test_ruler_zero_length():
+    assert ruler(0) == ""
+
+
+def test_ruler_negative_input():
+    assert ruler(0) == ""
+
+
+###############################################################################
+from pycheese.utils.linewrap import main, parse_args
+
+
+def test_parse_args_defaults():
+    args = parse_args(["example.py"])
+    assert args.filename == "example.py"
+    assert args.columns == 80
+
+
+def test_parse_args_custom_columns():
+    args = parse_args(["example.py", "-c", "100"])
+    assert args.filename == "example.py"
+    assert args.columns == 100
+
+
+def test_main_with_real_input(tmp_path, capfd):
+    file_path = tmp_path / "example.py"
+    file_path.write_text("print('hi')")
+
+    main([str(file_path), "--columns", "40"])
+    out, err = capfd.readouterr()
+
+    assert "print" in out
