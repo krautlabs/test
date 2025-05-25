@@ -1,0 +1,26 @@
+name: Test on Python 3.12
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    name: Python 3.12 Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Hatch
+        run: pip install hatch
+
+      - name: Run Tests
+        run: hatch run pytest

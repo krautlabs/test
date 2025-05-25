@@ -1,4 +1,4 @@
-name: Python Package Test
+name: Test on Python 3.13
 
 on:
   push:
@@ -8,19 +8,16 @@ on:
 
 jobs:
   test:
-    name: Test on Python ${{ matrix.python-version }}
+    name: Python 3.13 Tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.11', '3.12', '3.13'] #, '3.14.0-beta.1']
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Set up Python 3.13
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.13'
 
       - name: Install Hatch
         run: pip install hatch
