@@ -6,6 +6,12 @@
 hatch run pytest
 ```
 
+## Run Docker Tests
+
+```bash
+docker build --target tester -t pycheese-test .
+```
+
 ## Commit Latest Changes
 
 ```bash
@@ -77,4 +83,12 @@ hatch run docs:mkdocs serve
 ```bash
 pycheese --columns 50 --rows 15 --style dracula \
          --file tests/sample_code.py --output hero_image.png
+```
+
+
+## Run Docker
+
+```bash
+docker build -t pycheese-app .
+docker run -v $(pwd):/data --rm pycheese-app --file code.py --output out.png
 ```

@@ -7,6 +7,7 @@ on:
       - "Python 3.12"
       - "Python 3.13"
       - "Coverage Report"
+      - "Docker Testing"
     types:
       - completed
 

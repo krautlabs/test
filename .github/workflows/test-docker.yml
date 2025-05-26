@@ -1,0 +1,18 @@
+name: Docker Testing
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    name: Docker Tester Layer
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build docker tester layer
+        run: docker build --target tester -t pycheese-test .
